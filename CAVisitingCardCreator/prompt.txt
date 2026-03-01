@@ -1,0 +1,8 @@
+Can you create a CA Contact QR Card creator with the following details:
+
+Name, Mobile numbers (max 3), Mail IDs (max 2), Website, Linkedin, FaceBook, GIT Hub page, Profile pic and any other details I missed above. 
+
+The QR code shall have CA Logo in the center.
+
+It shall be a single page/file HTML/CSS/JS file. Can you do that
+
