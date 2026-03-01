@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CA Professional QR Card</title>
+    <script src="https://cdn.jsdelivr.net/npm/easyqrcodejs@4.4.13/dist/easy.qrcode.min.js"></script>
+    <style>
+        :root { --ca-blue: #003366; --ca-gold: #ffcc00; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .container { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); max-width: 500px; width: 100%; }
+        h2 { color: var(--ca-blue); text-align: center; border-bottom: 3px solid var(--ca-gold); padding-bottom: 10px; margin-top: 0; }
+        .form-group { margin-bottom: 12px; }
+        label { display: block; font-size: 0.9rem; font-weight: 600; margin-bottom: 4px; color: #444; }
+        input { width: 100%; padding: 10px; border: 1px solid #ccd; border-radius: 8px; box-sizing: border-box; font-size: 14px; }
+        button { width: 100%; padding: 15px; background: var(--ca-blue); color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer; margin-top: 15px; transition: 0.2s; }
+        button:hover { background: #002244; transform: translateY(-1px); }
+        #canvas-container { margin-top: 25px; text-align: center; display: none; }
+        #qrcode-result { margin: 20px auto; display: inline-block; padding: 10px; background: white; border-radius: 10px; box-shadow: 0 0 15px rgba(0,0,0,0.05); }
+    </style>
+</head>
+<body>
+
+<img id="caLogoSource" src="logo.png" style="display:none;">
+
+<div class="container">
+    <h2>CA Contact QR</h2>
+    
+    <div class="form-group">
+        <label>Full Name</label>
+        <input type="text" id="name" placeholder="CA Rajesh Kumar" value="CA Rajesh Kumar">
+    </div>
+
+    <div class="form-group">
+        <label>Mobiles (Max 3, comma separated)</label>
+        <input type="text" id="mobiles" placeholder="9876543210, 8888877777">
+    </div>
+
+    <div class="form-group">
+        <label>Emails (Max 2, comma separated)</label>
+        <input type="text" id="emails" placeholder="office@ca.com, personal@ca.com">
+    </div>
+
+    <div class="form-group">
+        <label>Website / LinkedIn / FB / GitHub (Optional)</label>
+        <input type="text" id="links" placeholder="Link 1, Link 2, Link 3">
+    </div>
+
+    <button onclick="generateQR()">Generate High-Density QR</button>
+
+    <div id="canvas-container">
+        <div id="qrcode-result"></div>
+        <p style="font-size: 0.8rem; color: #666;">Scan to add to contacts</p>
+        <button id="downloadBtn" style="background: #28a745;">Download PNG</button>
+    </div>
+</div>
+
+<script>
+function generateQR() {
+    const name = document.getElementById('name').value;
+    const mobiles = document.getElementById('mobiles').value.split(',');
+    const emails = document.getElementById('emails').value.split(',');
+    const links = document.getElementById('links').value.split(',');
+
+    // 1. Build Compact VCard (Removing extra spaces to save bits)
+    let vcard = `BEGIN:VCARD\nVERSION:3.0\nFN:${name}\n`;
+    mobiles.forEach(m => { if(m.trim()) vcard += `TEL;CELL:${m.trim()}\n`; });
+    emails.forEach(e => { if(e.trim()) vcard += `EMAIL:${e.trim()}\n`; });
+    links.forEach(l => { if(l.trim()) vcard += `URL:${l.trim()}\n`; });
+    vcard += `END:VCARD`;
+
+    // 2. Clear old QR
+    const resultDiv = document.getElementById("qrcode-result");
+    resultDiv.innerHTML = "";
+
+    // 3. Generate QR with automatic version scaling
+    const logoImg = document.getElementById('caLogoSource');
+    
+    new QRCode(resultDiv, {
+        text: vcard,
+        width: 350,
+        height: 350,
+        colorDark: "#003366",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.H, // High correction for logo
+        
+        // Integrated Logo Support in this library
+        logo: logoImg.src, 
+        logoWidth: 80,
+        logoHeight: 80,
+        logoBackgroundColor: '#ffffff',
+        logoBackgroundTransparent: false,
+        
+        onRenderingEnd: function(options, dataURL) {
+            document.getElementById('canvas-container').style.display = 'block';
+            document.getElementById('downloadBtn').onclick = function() {
+                const link = document.createElement('a');
+                link.download = 'CA_Contact_QR.png';
+                link.href = dataURL;
+                link.click();
+            };
+        }
+    });
+}
+</script>
+
+</body>
+</html>
