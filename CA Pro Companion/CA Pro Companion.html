@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Article Companion – Discipline Mode</title>
+
+<style>
+:root{
+  --navy:#0a1f44;
+  --gold:#c9a227;
+  --light:#f5f7fb;
+}
+body{
+  margin:0;
+  font-family:Segoe UI, sans-serif;
+  background:var(--light);
+  color:#111;
+}
+header{
+  background:var(--navy);
+  color:white;
+  padding:15px;
+  text-align:center;
+  font-size:22px;
+  font-weight:bold;
+}
+nav{
+  display:flex;
+  flex-wrap:wrap;
+  background:white;
+  border-bottom:2px solid var(--gold);
+}
+nav button{
+  flex:1;
+  padding:10px;
+  border:none;
+  background:white;
+  cursor:pointer;
+  font-weight:600;
+}
+nav button:hover{background:#eef1f7}
+section{display:none;padding:20px}
+.active{display:block}
+.card{
+  background:white;
+  padding:15px;
+  margin-bottom:15px;
+  border-radius:8px;
+  box-shadow:0 2px 6px rgba(0,0,0,0.1);
+}
+.overdue{color:red;font-weight:bold}
+.dueSoon{color:orange;font-weight:bold}
+canvas{max-width:100%}
+input,select,button,textarea{
+  padding:6px;
+  margin:4px 0;
+}
+.brutal{
+  font-weight:bold;
+  font-size:16px;
+}
+.rating{
+  font-weight:bold;
+  font-size:18px;
+  color:var(--navy);
+}
+.readiness{
+  font-size:20px;
+  font-weight:bold;
+  color:var(--gold);
+}
+</style>
+</head>
+
+<body>
+
+<header>CA Pro Companion – Discipline Mode</header>
+
+<nav>
+<button onclick="show('timer')">⏳ Discipline Engine</button>
+<button onclick="show('compliance')">📅 Compliance</button>
+<button onclick="show('notes')">🧾 Notes</button>
+<button onclick="show('calc')">📊 Calculators</button>
+<button onclick="show('discipline')">🎯 Habits</button>
+</nav>
+
+<!-- TIMER -->
+<section id="timer" class="active">
+<div class="card">
+<h3>Pomodoro Timer</h3>
+Work (min): <input type="number" id="workMin" value="25" min="1">
+Break (min): <input type="number" id="breakMin" value="5" min="1">
+<button onclick="startPomodoro()">Start</button>
+<h2 id="timerDisplay">00:00</h2>
+<p>Today's Study Hours: <span id="todayHours">0</span></p>
+<p class="rating" id="rating"></p>
+<p class="brutal" id="brutal"></p>
+<p id="quote"></p>
+</div>
+
+<div class="card">
+<h3>Last 7 Days Study</h3>
+<canvas id="weekChart" height="120"></canvas>
+</div>
+
+<div class="card">
+<h3>Exam Readiness Score</h3>
+<p class="readiness" id="readinessScore"></p>
+</div>
+</section>
+
+<!-- COMPLIANCE -->
+<section id="compliance">
+<div class="card">
+<h3>Compliance Tracker</h3>
+Client: <input id="clientName">
+Type:
+<select id="complianceType">
+<option>GSTR-1</option>
+<option>GSTR-3B</option>
+<option>TDS Return</option>
+<option>Advance Tax</option>
+<option>ROC Filing</option>
+</select>
+Due Date: <input type="date" id="dueDate">
+<button onclick="addCompliance()">Add</button>
+</div>
+<div class="card" id="complianceList"></div>
+</section>
+
+<!-- NOTES -->
+<section id="notes">
+<div class="card">
+<h3>Working Notes</h3>
+<textarea id="noteText" rows="3" placeholder="Write note"></textarea><br>
+<select id="noteTag">
+<option>Audit</option>
+<option>Tax</option>
+<option>GST</option>
+<option>Companies Act</option>
+</select>
+<button onclick="addNote()">Add</button>
+<input id="searchNote" placeholder="Search" onkeyup="renderNotes()">
+</div>
+<div class="card" id="notesList"></div>
+</section>
+
+<!-- CALCULATORS -->
+<section id="calc">
+<div class="card">
+<h3>EMI Calculator</h3>
+Loan: <input id="loan">
+Rate (% annual): <input id="rate">
+Tenure (months): <input id="tenure">
+<button onclick="calcEMI()">Calculate</button>
+<p id="emiResult"></p>
+</div>
+
+<div class="card">
+<h3>Depreciation Calculator</h3>
+Cost: <input id="assetCost">
+Rate (%): <input id="depRate">
+Years: <input id="years">
+<select id="depMethod">
+<option>SLM</option>
+<option>WDV</option>
+</select>
+<button onclick="calcDep()">Calculate</button>
+<p id="depResult"></p>
+</div>
+
+<div class="card">
+<h3>GST Calculator</h3>
+Amount: <input id="gstAmt">
+GST %: <input id="gstRate">
+<button onclick="addGST()">Add GST</button>
+<button onclick="removeGST()">Remove GST</button>
+<p id="gstResult"></p>
+</div>
+
+<div class="card">
+<h3>Income Tax Comparison</h3>
+Annual Income: <input id="income">
+<button onclick="calcTax()">Compare</button>
+<p id="taxResult"></p>
+</div>
+</section>
+
+<!-- DISCIPLINE -->
+<section id="discipline">
+<div class="card">
+<h3>Daily Habits</h3>
+<div id="habitList"></div>
+<input id="newHabit" placeholder="Add habit">
+<button onclick="addHabit()">Add</button>
+<p>Streak: <span id="streak"></span> days</p>
+</div>
+</section>
+
+<script>
+
+/* Navigation */
+function show(id){
+document.querySelectorAll("section").forEach(s=>s.classList.remove("active"));
+document.getElementById(id).classList.add("active");
+}
+
+/* ---------------- TIMER ENGINE ---------------- */
+
+let timerInterval;
+
+function startPomodoro(){
+let work=parseInt(workMin.value);
+if(!work || work<=0){alert("Enter valid work minutes");return;}
+let seconds=work*60;
+clearInterval(timerInterval);
+timerInterval=setInterval(()=>{
+let m=Math.floor(seconds/60);
+let s=seconds%60;
+timerDisplay.innerText=
+String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");
+seconds--;
+if(seconds<0){
+clearInterval(timerInterval);
+addStudyTime(work/60);
+}
+},1000);
+}
+
+function addStudyTime(hours){
+let today=new Date().toISOString().slice(0,10);
+let data=JSON.parse(localStorage.getItem("studyData"))||{};
+data[today]=(data[today]||0)+hours;
+localStorage.setItem("studyData",JSON.stringify(data));
+updateStudy();
+}
+
+function updateStudy(){
+let data=JSON.parse(localStorage.getItem("studyData"))||{};
+let today=new Date().toISOString().slice(0,10);
+let todayHoursValue=data[today]||0;
+todayHours.innerText=todayHoursValue.toFixed(2);
+updateRating(todayHoursValue);
+drawChart(data);
+updateReadiness();
+}
+updateStudy();
+
+/* Rating + Brutal Feedback */
+function updateRating(hours){
+let text="";
+let brutalText="";
+if(hours<1){text="Embarrassing";}
+else if(hours<2){text="Below CA Standard";}
+else if(hours<4){text="Average Effort";}
+else if(hours<6){text="Serious Aspirant";}
+else{text="Future Rank Holder";}
+rating.innerText="Rating: "+text;
+
+if(hours<2){
+brutalText="You say you want CA. Your actions disagree. Discipline is missing.";
+}else if(hours<4){
+brutalText="Better. But rankers are still ahead of you.";
+}else{
+brutalText="Good. Maintain consistency.";
+}
+brutal.innerText=brutalText;
+}
+
+/* Motivational Quote */
+const quotes=[
+"Discipline compounds faster than interest.",
+"Audit your habits before auditing companies.",
+"Consistency clears CA.",
+"Pressure builds professionals.",
+"Small daily efforts create rank holders."
+];
+
+function loadQuote(){
+let day=new Date().getDate();
+quote.innerText="Quote: "+quotes[day%quotes.length];
+}
+loadQuote();
+
+/* Chart */
+function drawChart(data){
+let ctx=weekChart.getContext("2d");
+ctx.clearRect(0,0,400,150);
+let keys=Object.keys(data).slice(-7);
+keys.forEach((k,i)=>{
+let h=(data[k]||0)*20;
+ctx.fillStyle="#0a1f44";
+ctx.fillRect(i*50,120-h,30,h);
+});
+}
+
+/* Readiness */
+function updateReadiness(){
+let data=JSON.parse(localStorage.getItem("studyData"))||{};
+let last30=Object.keys(data).slice(-30);
+let days=last30.length;
+let score=30;
+if(days>=25)score=100;
+else if(days>=20)score=85;
+else if(days>=15)score=70;
+else if(days>=10)score=50;
+readinessScore.innerText="Score: "+score+" / 100";
+}
+
+/* ---------------- COMPLIANCE ---------------- */
+
+let compliance=JSON.parse(localStorage.getItem("compliance"))||[];
+
+function addCompliance(){
+if(!clientName.value||!dueDate.value){alert("Fill details");return;}
+compliance.push({
+client:clientName.value,
+type:complianceType.value,
+due:dueDate.value,
+done:false
+});
+localStorage.setItem("compliance",JSON.stringify(compliance));
+renderCompliance();
+}
+
+function renderCompliance(){
+complianceList.innerHTML="";
+let today=new Date();
+compliance.forEach((c,i)=>{
+let div=document.createElement("div");
+let due=new Date(c.due);
+let diff=(due-today)/(1000*60*60*24);
+if(!c.done){
+if(diff<0)div.className="overdue";
+else if(diff<=3)div.className="dueSoon";
+}
+div.innerHTML=
+`${c.client} - ${c.type} - ${c.due}
+<button onclick="markDone(${i})">Done</button>`;
+complianceList.appendChild(div);
+});
+}
+function markDone(i){
+compliance[i].done=true;
+localStorage.setItem("compliance",JSON.stringify(compliance));
+renderCompliance();
+}
+renderCompliance();
+
+/* ---------------- NOTES ---------------- */
+
+let notes=JSON.parse(localStorage.getItem("notes"))||[];
+
+function addNote(){
+if(!noteText.value){alert("Enter note");return;}
+notes.push({text:noteText.value,tag:noteTag.value});
+localStorage.setItem("notes",JSON.stringify(notes));
+noteText.value="";
+renderNotes();
+}
+
+function renderNotes(){
+notesList.innerHTML="";
+let search=searchNote.value||"";
+notes.filter(n=>n.text.includes(search)).forEach(n=>{
+let div=document.createElement("div");
+div.innerText=n.tag+" : "+n.text;
+notesList.appendChild(div);
+});
+}
+renderNotes();
+
+/* ---------------- CALCULATORS ---------------- */
+
+function calcEMI(){
+let P=parseFloat(loan.value);
+let r=parseFloat(rate.value)/1200;
+let n=parseInt(tenure.value);
+if(!P||!r||!n){alert("Enter valid values");return;}
+let emi=P*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1);
+emiResult.innerText="EMI: "+emi.toFixed(2);
+}
+
+function calcDep(){
+let cost=parseFloat(assetCost.value);
+let rate=parseFloat(depRate.value)/100;
+let yrs=parseInt(years.value);
+if(!cost||!rate||!yrs){alert("Enter valid inputs");return;}
+let annualDep=0,totalDep=0,closing=0;
+
+if(depMethod.value==="SLM"){
+annualDep=cost*rate;
+totalDep=annualDep*yrs;
+closing=cost-totalDep;
+if(closing<0)closing=0;
+}else{
+closing=cost*Math.pow((1-rate),yrs);
+totalDep=cost-closing;
+annualDep=totalDep/yrs;
+}
+
+depResult.innerText=
+"Annual Depreciation: "+annualDep.toFixed(2)+
+" | Total Depreciation: "+totalDep.toFixed(2)+
+" | Closing Value: "+closing.toFixed(2);
+}
+
+function addGST(){
+let amt=parseFloat(gstAmt.value);
+let r=parseFloat(gstRate.value)/100;
+if(!amt||!r){alert("Enter valid values");return;}
+gstResult.innerText="Total: "+(amt*(1+r)).toFixed(2);
+}
+
+function removeGST(){
+let amt=parseFloat(gstAmt.value);
+let r=parseFloat(gstRate.value)/100;
+if(!amt||!r){alert("Enter valid values");return;}
+gstResult.innerText="Base: "+(amt/(1+r)).toFixed(2);
+}
+
+function calcTax(){
+let inc=parseFloat(income.value);
+if(!inc){alert("Enter income");return;}
+let old=inc<=500000?0:inc*0.2;
+let neu=inc<=700000?0:inc*0.15;
+taxResult.innerText="Old Regime: "+old.toFixed(2)+" | New Regime: "+neu.toFixed(2);
+}
+
+/* ---------------- HABITS ---------------- */
+
+let habits=JSON.parse(localStorage.getItem("habits"))||["Prayer","Study","Revision","Exercise"];
+let habitData=JSON.parse(localStorage.getItem("habitData"))||{};
+
+function renderHabits(){
+habitList.innerHTML="";
+let today=new Date().toISOString().slice(0,10);
+if(!habitData[today])habitData[today]={};
+
+habits.forEach(h=>{
+let chk=document.createElement("input");
+chk.type="checkbox";
+chk.checked=habitData[today][h]||false;
+chk.onchange=function(){
+habitData[today][h]=this.checked;
+localStorage.setItem("habitData",JSON.stringify(habitData));
+updateStreak();
+};
+habitList.appendChild(chk);
+habitList.append(" "+h);
+habitList.appendChild(document.createElement("br"));
+});
+updateStreak();
+}
+
+function addHabit(){
+if(!newHabit.value)return;
+habits.push(newHabit.value);
+localStorage.setItem("habits",JSON.stringify(habits));
+newHabit.value="";
+renderHabits();
+}
+
+function updateStreak(){
+let days=Object.keys(habitData).sort();
+let streakCount=0;
+for(let i=days.length-1;i>=0;i--){
+let allDone=Object.values(habitData[days[i]]).every(v=>v);
+if(allDone)streakCount++;
+else break;
+}
+streak.innerText=streakCount;
+}
+
+renderHabits();
+
+</script>
+</body>
+</html>
