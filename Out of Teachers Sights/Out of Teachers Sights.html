@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Out of Teachers’ Sight</title>
+<style>
+body{
+    margin:0;
+    font-family:Segoe UI, Arial, sans-serif;
+    background:#0b0f14;
+    color:white;
+}
+header{
+    text-align:center;
+    padding:15px;
+    font-size:28px;
+    color:#00ffd5;
+    letter-spacing:1px;
+}
+.subtitle{
+    text-align:center;
+    font-size:12px;
+    color:#aaa;
+    margin-bottom:10px;
+}
+.container{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:15px;
+    padding:15px;
+}
+.panel{
+    background:#141a28;
+    padding:15px;
+    border-radius:15px;
+    box-shadow:0 0 15px rgba(0,0,0,0.8);
+}
+h2{color:#00ffd5;}
+select,input,textarea{
+    width:100%;
+    padding:8px;
+    margin-top:5px;
+    border:none;
+    border-radius:8px;
+    background:#1f2638;
+    color:white;
+}
+button{
+    width:100%;
+    padding:10px;
+    margin-top:10px;
+    border:none;
+    border-radius:10px;
+    background:#00ffd5;
+    color:black;
+    cursor:pointer;
+}
+button:hover{background:#00c9a7;}
+.preview{
+    background:white;
+    color:black;
+    padding:15px;
+    min-height:230px;
+    margin-top:10px;
+    border-radius:10px;
+}
+img{
+    max-width:100%;
+    margin-top:10px;
+}
+.infoBox{
+    background:#1f2638;
+    padding:10px;
+    border-radius:10px;
+    margin-top:10px;
+}
+.reference{
+    font-size:12px;
+    color:#aaa;
+    margin-top:5px;
+}
+footer{
+    text-align:center;
+    font-size:11px;
+    color:#777;
+    padding:6px;
+}
+</style>
+</head>
+<body>
+
+<header>🕶 Out of Teachers’ Sight</header>
+<div class="subtitle">Smart alignment & topic helper for college projects</div>
+
+<div class="container">
+
+<!-- LEFT PANEL -->
+<div class="panel">
+<h2>📝 Formatting Controls</h2>
+
+<label>Line Spacing</label>
+<select id="spacing">
+<option value="1">1.0</option>
+<option value="1.5">1.5</option>
+<option value="2">2.0</option>
+</select>
+
+<label>Text Alignment</label>
+<select id="layout">
+<option value="left">Left</option>
+<option value="center">Center</option>
+<option value="justify">Justify</option>
+</select>
+
+<label>Add Picture</label>
+<input type="file" id="imgInput" accept="image/*">
+
+<label>Project Content</label>
+<textarea id="content" rows="6" placeholder="Paste or type your project content here..."></textarea>
+
+<button onclick="applyFormat()">Apply Format</button>
+
+<h2>📄 Preview (Copy to Word)</h2>
+<div class="preview" id="preview"></div>
+</div>
+
+<!-- RIGHT PANEL -->
+<div class="panel">
+<h2>🎓 Select Field</h2>
+<select id="field">
+<option value="commerce">Commerce</option>
+<option value="computer">Computer Science</option>
+<option value="science">Science</option>
+<option value="arts">Arts</option>
+<option value="management">Management</option>
+</select>
+
+<button onclick="suggestTopic()">Get Topic Suggestions</button>
+
+<div class="infoBox" id="topicBox"></div>
+<div class="reference" id="reference"></div>
+</div>
+
+</div>
+
+<footer>* For educational formatting & topic guidance only.</footer>
+
+<script>
+let imgURL="";
+
+document.getElementById("imgInput").addEventListener("change", function(e){
+    let file=e.target.files[0];
+    if(file){
+        imgURL=URL.createObjectURL(file);
+    }
+});
+
+function applyFormat(){
+    let spacing=document.getElementById("spacing").value;
+    let layout=document.getElementById("layout").value;
+    let text=document.getElementById("content").value;
+
+    let html = `<div style="line-height:${spacing}; text-align:${layout};">${text.replace(/\n/g,"<br>")}</div>`;
+    if(imgURL){
+        html += `<img src="${imgURL}">`;
+    }
+    document.getElementById("preview").innerHTML=html;
+}
+
+function suggestTopic(){
+    let field=document.getElementById("field").value;
+    let topics="", info="", ref="";
+
+    if(field=="commerce"){
+        topics="• Impact of Digital Payments on Consumers<br>• GST and Indian Economy<br>• Growth of E-Commerce in India<br>• Financial Inclusion through Banking";
+        info="These topics explain modern financial systems, digital money, taxation impact and market expansion affecting consumers and businesses.";
+        ref="Sources: RBI Reports, Investopedia, World Bank";
+    }
+    else if(field=="computer"){
+        topics="• Artificial Intelligence in Education<br>• Cyber Security and Data Protection<br>• Cloud Computing Applications<br>• Internet of Things (IoT)";
+        info="These topics describe emerging technologies, their uses in education, business and information security.";
+        ref="Sources: IBM Research, Google Scholar, Microsoft Learn";
+    }
+    else if(field=="science"){
+        topics="• Renewable Energy Resources<br>• Climate Change and Global Warming<br>• Biotechnology in Medicine<br>• Water Conservation Techniques";
+        info="These topics focus on environmental sustainability, clean energy and scientific innovations in healthcare.";
+        ref="Sources: National Geographic, IEA Reports, WHO";
+    }
+    else if(field=="arts"){
+        topics="• Social Media and Youth Culture<br>• Indian Cultural Heritage<br>• Gender Equality in Society<br>• Role of Mass Media";
+        info="These topics analyze social behavior, culture, communication and equality in modern society.";
+        ref="Sources: Pew Research Center, UNESCO, NCERT";
+    }
+    else{
+        topics="• Importance of Financial Literacy<br>• Leadership Styles in Organizations<br>• Entrepreneurship Development<br>• Corporate Social Responsibility";
+        info="These topics help understand business skills, leadership roles and ethical business practices.";
+        ref="Sources: Harvard Business Review, Investopedia, World Bank";
+    }
+
+    document.getElementById("topicBox").innerHTML=
+    `<b>Suggested Topics:</b><br>${topics}<br><br>
+     <b>Important Information:</b><br>${info}`;
+
+    document.getElementById("reference").innerText=ref;
+}
+</script>
+
+</body>
+</html>
