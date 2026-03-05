@@ -1,0 +1,1 @@
+Give me a single page HTML+CSS+Java script. I want to remove special characters in the given para and give only plain text. 1.Input - "Input the text or sentence here" 2. Process the above - while processing make it a single para. Delete all tabs and double space. But can include '.' 3. Give output Enable two buttons, - Reset , Copy 4.Name on top as SALEM AURA - Text Cleaner
