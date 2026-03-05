@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Client Doc and Fee Reminder</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+    color: #fff;
+}
+
+h1, h3 { text-align:center; }
+
+.quote {
+    text-align:center;
+    font-style:italic;
+    margin-bottom:20px;
+    opacity:0.85;
+}
+
+.container {
+    background:#111c2e;
+    padding:20px;
+    border-radius:10px;
+    max-width:1300px;
+    margin:auto;
+}
+
+input, select, textarea, button {
+    width:100%;
+    padding:8px;
+    margin:5px 0 12px 0;
+    border-radius:6px;
+    border:none;
+}
+
+input, select, textarea {
+    background:#1e2a3a;
+    color:#fff;
+}
+
+button {
+    background:#007bff;
+    color:white;
+    cursor:pointer;
+}
+
+button:hover { background:#0056b3; }
+
+table {
+    width:100%;
+    border-collapse:collapse;
+    margin-top:20px;
+    background:#162233;
+}
+
+th, td {
+    border:1px solid #2e3f55;
+    padding:6px;
+    text-align:center;
+}
+
+th { background:#0d1b2a; }
+
+footer {
+    text-align:center;
+    margin-top:20px;
+    opacity:0.7;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Client Doc and Fee Reminder</h1>
+<div class="quote">"Organised Files. Timely Compliance. Professional Excellence."</div>
+
+<div class="container">
+
+<h3>Add Client</h3>
+
+<label>File Number</label>
+<input type="text" id="fileNo">
+
+<label>Client Name</label>
+<input type="text" id="clientName">
+
+<label>PAN</label>
+<input type="text" id="pan" maxlength="10" placeholder="AAAAA9999A">
+
+<label>WhatsApp Number (with country code)</label>
+<input type="text" id="whatsapp">
+
+<label>Entity Type</label>
+<select id="entity" onchange="loadDocs()">
+<option value="">Select</option>
+<option>Individual</option>
+<option>Firm</option>
+<option>LLP</option>
+<option>Company</option>
+<option>Trust</option>
+<option>HUF</option>
+<option>AOP/BOI</option>
+</select>
+
+<h3>Required Documents</h3>
+
+<table>
+<thead>
+<tr>
+<th>Document Name</th>
+<th>Received</th>
+<th>Remove</th>
+</tr>
+</thead>
+<tbody id="docTable"></tbody>
+</table>
+
+<input type="text" id="newDoc" placeholder="Add New Document">
+<button onclick="addDoc()">Add Document</button>
+
+<h3>Fee Details</h3>
+
+<label>Total Fees</label>
+<input type="number" id="total" oninput="calcPending()">
+
+<label>Fee Collected</label>
+<input type="number" id="collected" oninput="calcPending()">
+
+<label>Pending Fee</label>
+<input type="number" id="pending">
+
+<button onclick="addClient()">Add Client</button>
+
+<h3>Search Client (File No / Name / PAN)</h3>
+<input type="text" id="search" onkeyup="searchClient()">
+
+<table>
+<thead>
+<tr>
+<th>File No</th>
+<th>Name</th>
+<th>PAN</th>
+<th>Entity</th>
+<th>Total</th>
+<th>Collected</th>
+<th>Pending</th>
+<th>Reminder</th>
+<th>Delete</th>
+</tr>
+</thead>
+<tbody id="clientTable"></tbody>
+</table>
+
+</div>
+
+<footer>Created by Swetha CA</footer>
+
+<script>
+
+const templates = {
+"Individual": ["PAN","Aadhaar","Bank Statement","Form 16"],
+"Firm": ["Partnership Deed","PAN","GST Certificate","Bank Statement"],
+"LLP": ["LLP Agreement","Incorporation Certificate","PAN","Bank Statement"],
+"Company": ["COI","MOA & AOA","PAN","Financial Statements"],
+"Trust": ["Trust Deed","Registration Certificate","PAN"],
+"HUF": ["HUF Deed","PAN","Karta Aadhaar"],
+"AOP/BOI": ["Agreement Deed","PAN","Member Details"]
+};
+
+function loadDocs(){
+    let entity = document.getElementById("entity").value;
+    let table = document.getElementById("docTable");
+    table.innerHTML = "";
+
+    if(templates[entity]){
+        templates[entity].forEach(doc=>{
+            addDocRow(doc);
+        });
+    }
+}
+
+function addDoc(){
+    let doc = document.getElementById("newDoc").value;
+    if(doc.trim() !== ""){
+        addDocRow(doc);
+        document.getElementById("newDoc").value="";
+    }
+}
+
+function addDocRow(name){
+    let table=document.getElementById("docTable");
+    let row=table.insertRow();
+    row.innerHTML=`
+        <td contenteditable="true">${name}</td>
+        <td><input type="checkbox"></td>
+        <td><button onclick="this.parentElement.parentElement.remove()">X</button></td>
+    `;
+}
+
+function calcPending(){
+    let total=parseFloat(document.getElementById("total").value)||0;
+    let collected=parseFloat(document.getElementById("collected").value)||0;
+    document.getElementById("pending").value=total-collected;
+}
+
+function validatePAN(pan){
+    return /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(pan);
+}
+
+function addClient(){
+
+    let fileNo = document.getElementById("fileNo").value.trim();
+    let name = document.getElementById("clientName").value.trim();
+    let panVal = document.getElementById("pan").value.trim().toUpperCase();
+    let entityVal = document.getElementById("entity").value;
+    let totalVal = document.getElementById("total").value;
+    let collectedVal = document.getElementById("collected").value;
+    let pendingVal = document.getElementById("pending").value;
+    let whatsappNo = document.getElementById("whatsapp").value;
+
+    if(!fileNo || !name || !panVal){
+        alert("File No, Name and PAN required");
+        return;
+    }
+
+    if(panVal.length !== 10 || !validatePAN(panVal)){
+        alert("Invalid PAN format. Use AAAAA9999A");
+        return;
+    }
+
+    let pendingDocs=[];
+    let rows=document.getElementById("docTable").rows;
+
+    for(let i=0;i<rows.length;i++){
+        let docName=rows[i].cells[0].innerText;
+        let received=rows[i].cells[1].children[0].checked;
+        if(!received){
+            pendingDocs.push(docName);
+        }
+    }
+
+    let table=document.getElementById("clientTable");
+    let row=table.insertRow();
+
+    row.innerHTML=`
+        <td><input value="${fileNo}"></td>
+        <td><input value="${name}"></td>
+        <td><input value="${panVal}"></td>
+        <td><input value="${entityVal}"></td>
+        <td><input type="number" value="${totalVal}" oninput="recalculate(this)"></td>
+        <td><input type="number" value="${collectedVal}" oninput="recalculate(this)"></td>
+        <td><input type="number" value="${pendingVal}"></td>
+        <td><button onclick="sendReminder(this)">Send</button></td>
+        <td><button onclick="this.parentElement.parentElement.remove()">Delete</button></td>
+    `;
+
+    clearForm();
+}
+
+function recalculate(input){
+    let row=input.parentElement.parentElement;
+    let total=row.cells[4].children[0].value||0;
+    let collected=row.cells[5].children[0].value||0;
+    row.cells[6].children[0].value=total-collected;
+}
+
+function sendReminder(btn){
+
+    let row=btn.parentElement.parentElement;
+
+    let name=row.cells[1].children[0].value;
+    let pending=row.cells[6].children[0].value;
+    let whatsapp=document.getElementById("whatsapp").value;
+
+    let message=`Dear ${name}, Kindly submit pending documents and clear pending fee of Rs.${pending}. - CA Office`;
+    let url=`https://wa.me/${whatsapp}?text=${encodeURIComponent(message)}`;
+    window.open(url,"_blank");
+}
+
+function searchClient(){
+    let input=document.getElementById("search").value.toLowerCase();
+    let rows=document.getElementById("clientTable").rows;
+
+    for(let i=0;i<rows.length;i++){
+        let fileNo=rows[i].cells[0].children[0].value.toLowerCase();
+        let name=rows[i].cells[1].children[0].value.toLowerCase();
+        let panVal=rows[i].cells[2].children[0].value.toLowerCase();
+
+        if(fileNo.includes(input) || name.includes(input) || panVal.includes(input)){
+            rows[i].style.display="";
+        } else {
+            rows[i].style.display="none";
+        }
+    }
+}
+
+function clearForm(){
+    document.getElementById("fileNo").value="";
+    document.getElementById("clientName").value="";
+    document.getElementById("pan").value="";
+    document.getElementById("whatsapp").value="";
+    document.getElementById("entity").value="";
+    document.getElementById("docTable").innerHTML="";
+    document.getElementById("total").value="";
+    document.getElementById("collected").value="";
+    document.getElementById("pending").value="";
+}
+
+</script>
+
+</body>
+</html>
