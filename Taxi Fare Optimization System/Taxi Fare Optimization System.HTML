@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Taxi Fare Optimizer Pro</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(rgba(255,204,0,0.92), rgba(255,204,0,0.92)),
+    url('https://images.unsplash.com/photo-1518684079-3c830dcef090?auto=format&fit=crop&w=1600&q=80');
+    background-size: cover;
+    background-position: center;
+}
+
+.container {
+    max-width: 750px;
+    margin: 40px auto;
+    background: rgba(255,255,255,0.97);
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+}
+
+h2 {
+    text-align: center;
+    color: black;
+}
+
+label {
+    font-weight: bold;
+}
+
+input, select {
+    width: 100%;
+    padding: 10px;
+    margin: 8px 0 15px 0;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+}
+
+button {
+    width: 100%;
+    padding: 12px;
+    background: black;
+    color: #ffcc00;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #333;
+}
+
+.result {
+    margin-top: 20px;
+    padding: 15px;
+    background: #fff8cc;
+    border-left: 6px solid black;
+    font-weight: bold;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+<h2>🚖 Taxi Fare Optimization System</h2>
+
+<label>Road Type</label>
+<select id="roadType">
+    <option value="city">City</option>
+    <option value="highway">Highway</option>
+    <option value="hilly">Hilly</option>
+</select>
+
+<label>Customer Quantity</label>
+<input type="number" id="customers" placeholder="Enter passengers">
+
+<label>Petrol Price (₹/Litre)</label>
+<input type="number" id="petrolPrice" readonly>
+
+<label>Car Engine & Seating Capacity</label>
+<select id="engineType">
+    <option value="1000">1000cc - 4 Seater</option>
+    <option value="1500">1500cc - 5 Seater</option>
+    <option value="2000">2000cc - 7 Seater</option>
+</select>
+
+<label>Total KM Travelled (per day)</label>
+<input type="number" id="km" placeholder="Enter KM">
+
+<label>Number of Days</label>
+<input type="number" id="days" placeholder="Enter days">
+
+<label>Festival Season</label>
+<select id="festival">
+    <option value="no">No</option>
+    <option value="yes">Yes</option>
+</select>
+
+<label>Customer Monthly Booking Frequency</label>
+<input type="number" id="frequency" placeholder="Enter number of bookings per month">
+
+<button onclick="calculateFare()">Calculate Optimal Price</button>
+
+<div class="result" id="result"></div>
+
+</div>
+
+<script>
+
+// Petrol price auto fetch (Demo placeholder API)
+async function fetchPetrolPrice() {
+    try {
+        let response = await fetch("https://api.exchangerate-api.com/v4/latest/USD");
+        if(response.ok){
+            document.getElementById("petrolPrice").value = 104;
+        } else {
+            document.getElementById("petrolPrice").value = 104;
+        }
+    } catch {
+        document.getElementById("petrolPrice").value = 104;
+    }
+}
+fetchPetrolPrice();
+
+function calculateFare(){
+
+    let roadType = document.getElementById("roadType").value;
+    let customers = parseInt(document.getElementById("customers").value) || 1;
+    let petrolPrice = parseFloat(document.getElementById("petrolPrice").value) || 100;
+    let engineCC = parseInt(document.getElementById("engineType").value);
+    let km = parseFloat(document.getElementById("km").value) || 0;
+    let days = parseInt(document.getElementById("days").value) || 1;
+    let festival = document.getElementById("festival").value;
+    let frequency = parseInt(document.getElementById("frequency").value) || 0;
+
+    if(km <= 0){
+        alert("Enter valid KM travelled.");
+        return;
+    }
+
+    // Base mileage & cost
+    let baseMileage, baseCostPerKm;
+
+    if(engineCC === 1000){
+        baseMileage = 20;
+        baseCostPerKm = 7;
+    } else if(engineCC === 1500){
+        baseMileage = 15;
+        baseCostPerKm = 10;
+    } else {
+        baseMileage = 10;
+        baseCostPerKm = 14;
+    }
+
+    // Adjust mileage by road
+    if(roadType === "city") baseMileage *= 0.85;
+    if(roadType === "hilly") baseMileage *= 0.65;
+    if(roadType === "highway") baseMileage *= 1.10;
+
+    let totalKm = km * days;
+
+    let fuelCost = (totalKm / baseMileage) * petrolPrice;
+
+    let loadFactor = 1 + (customers * 0.04);
+    let operationalCost = totalKm * baseCostPerKm * loadFactor;
+
+    let totalCost = fuelCost + operationalCost;
+
+    // Profit Margin Logic
+    let margin = 0.22;
+    if(engineCC === 2000) margin = 0.28;
+    if(engineCC === 1000) margin = 0.18;
+
+    let price = totalCost * (1 + margin);
+
+    // Festival Surge
+    if(festival === "yes") price *= 1.08;
+
+    // ⭐ Rating & Loyalty System
+    let rating, loyaltyDiscount = 0;
+
+    if(frequency >= 20){
+        rating = "Platinum";
+        loyaltyDiscount = 0.10;
+    } else if(frequency >= 10){
+        rating = "Gold";
+        loyaltyDiscount = 0.07;
+    } else if(frequency >= 5){
+        rating = "Silver";
+        loyaltyDiscount = 0.05;
+    } else {
+        rating = "Regular";
+        loyaltyDiscount = 0;
+    }
+
+    price = price * (1 - loyaltyDiscount);
+
+    price = Math.round(price);
+
+    document.getElementById("result").innerHTML =
+        "Total KM: " + totalKm + " km<br>" +
+        "Adjusted Mileage: " + baseMileage.toFixed(2) + " km/l<br>" +
+        "Fuel Cost: ₹ " + Math.round(fuelCost) + "<br>" +
+        "Operational Cost: ₹ " + Math.round(operationalCost) + "<br>" +
+        "Customer Rating Tier: " + rating + "<br>" +
+        "Final Optimal Price: ₹ " + price;
+}
+</script>
+
+</body>
+</html>
