@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>CA Professional Memory Challenge</title>
+
+<style>
+body{
+    margin:0;
+    font-family:Segoe UI, Arial, sans-serif;
+    background:linear-gradient(135deg,#1f4037,#99f2c8);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+}
+
+.container{
+    width:750px;
+    background:white;
+    padding:20px;
+    border-radius:10px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.3);
+    text-align:center;
+}
+
+h1{
+    margin-top:0;
+    color:#1f4037;
+}
+
+.level-select button{
+    margin:5px;
+    padding:8px 15px;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
+    background:#1f4037;
+    color:white;
+}
+
+.grid{
+    display:grid;
+    gap:10px;
+    margin-top:15px;
+}
+
+.card{
+    background:#1f4037;
+    color:white;
+    border-radius:6px;
+    padding:10px;
+    cursor:pointer;
+    min-height:70px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    font-size:13px;
+}
+
+.card.flipped{
+    background:#f4f4f4;
+    color:black;
+    cursor:default;
+}
+
+.card.matched{
+    background:#27ae60;
+    color:white;
+    cursor:default;
+}
+
+.stats{
+    margin-top:10px;
+    font-size:14px;
+}
+
+.timer{
+    font-weight:bold;
+    color:#c0392b;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <h1>CA Professional Memory Challenge</h1>
+    <p>Select Level (Each Level: 1 Minute)</p>
+
+    <div class="level-select">
+        <button onclick="startGame('easy')">Beginner</button>
+        <button onclick="startGame('medium')">Medium</button>
+        <button onclick="startGame('hard')">Final Level</button>
+    </div>
+
+    <div class="stats">
+        Time Left: <span class="timer" id="time">60</span>s |
+        Moves: <span id="moves">0</span> |
+        Score: <span id="score">0</span>
+    </div>
+
+    <div class="grid" id="grid"></div>
+</div>
+
+<script>
+
+const levelData = {
+easy:[
+{term:"Asset",match:"Resource controlled by entity"},
+{term:"Liability",match:"Present obligation"},
+{term:"GST",match:"Indirect tax on supply"},
+{term:"Audit",match:"True and fair examination"}
+],
+medium:[
+{term:"Depreciation",match:"Systematic allocation of cost"},
+{term:"Provision",match:"Liability of uncertain amount"},
+{term:"Inventory",match:"Held for sale in business"},
+{term:"Capital Gain",match:"Profit on sale of capital asset"},
+{term:"Amortization",match:"Allocation of intangible asset"}
+],
+hard:[
+{term:"Ind AS 16",match:"Property Plant Equipment"},
+{term:"Ind AS 115",match:"Revenue from Contracts"},
+{term:"CARO",match:"Auditor reporting order"},
+{term:"MAT",match:"Minimum Alternate Tax"},
+{term:"Deferred Tax",match:"Timing difference tax effect"},
+{term:"IFRS",match:"International reporting standards"}
+]
+};
+
+let cards=[];
+let flipped=[];
+let moves=0;
+let score=0;
+let timer;
+let timeLeft=60;
+let totalPairs=0;
+
+const grid=document.getElementById("grid");
+const movesEl=document.getElementById("moves");
+const scoreEl=document.getElementById("score");
+const timeEl=document.getElementById("time");
+
+function startGame(level){
+clearInterval(timer);
+grid.innerHTML="";
+cards=[];
+flipped=[];
+moves=0;
+score=0;
+timeLeft=60;
+
+movesEl.textContent=0;
+scoreEl.textContent=0;
+timeEl.textContent=60;
+
+let data=levelData[level];
+totalPairs=data.length;
+
+data.forEach(d=>{
+cards.push({text:d.term,pair:d.term});
+cards.push({text:d.match,pair:d.term});
+});
+
+shuffle(cards);
+
+let columns=level==="easy"?4:(level==="medium"?4:4);
+grid.style.gridTemplateColumns="repeat("+columns+",1fr)";
+
+cards.forEach((card,index)=>{
+let div=document.createElement("div");
+div.classList.add("card");
+div.dataset.index=index;
+div.onclick=()=>flipCard(div,card);
+grid.appendChild(div);
+});
+
+timer=setInterval(()=>{
+timeLeft--;
+timeEl.textContent=timeLeft;
+if(timeLeft<=0){
+clearInterval(timer);
+endGame();
+}
+},1000);
+}
+
+function shuffle(arr){
+arr.sort(()=>Math.random()-0.5);
+}
+
+function flipCard(element,card){
+if(element.classList.contains("flipped")||element.classList.contains("matched")||flipped.length===2||timeLeft<=0)
+return;
+
+element.classList.add("flipped");
+element.textContent=card.text;
+flipped.push({element,card});
+
+if(flipped.length===2){
+moves++;
+movesEl.textContent=moves;
+checkMatch();
+}
+}
+
+function checkMatch(){
+let [first,second]=flipped;
+
+if(first.card.pair===second.card.pair && first.card.text!==second.card.text){
+first.element.classList.add("matched");
+second.element.classList.add("matched");
+score+=10;
+scoreEl.textContent=score;
+flipped=[];
+
+if(document.querySelectorAll(".matched").length===cards.length){
+clearInterval(timer);
+endGame();
+}
+}else{
+setTimeout(()=>{
+first.element.classList.remove("flipped");
+second.element.classList.remove("flipped");
+first.element.textContent="";
+second.element.textContent="";
+flipped=[];
+},700);
+}
+}
+
+function endGame(){
+alert("Time Over!\nFinal Score: "+score+"\nProfessional Learning Completed.");
+}
+
+</script>
+
+</body>
+</html>
