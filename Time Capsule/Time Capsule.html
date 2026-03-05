@@ -1,0 +1,457 @@
+```html
+<!DOCTYPE html>
+<html>
+<head>
+<title>Time Capsule</title>
+
+<style>
+
+body{
+margin:0;
+font-family:Arial;
+background:white;
+color:black;
+display:flex;
+height:100vh;
+}
+
+/* DARK THEME */
+
+body.dark{
+background:#0b1f3a;
+color:white;
+}
+
+/* SIDEBAR */
+
+.sidebar{
+width:200px;
+background:#0b1f3a;
+color:white;
+padding:10px;
+}
+
+.sidebar h3{
+cursor:pointer;
+margin:10px 0;
+}
+
+.sidebar div{
+margin-left:10px;
+display:none;
+}
+
+body.dark .sidebar{
+border-right:3px solid skyblue;
+}
+
+/* MAIN */
+
+.main{
+flex:1;
+padding:20px;
+overflow:auto;
+}
+
+/* CAPSULE BUTTON */
+
+#createBtn{
+font-size:20px;
+padding:10px;
+cursor:pointer;
+}
+
+/* FORM */
+
+.form{
+display:none;
+margin-top:20px;
+border:2px solid skyblue;
+padding:15px;
+}
+
+input,select,textarea{
+display:block;
+margin:8px 0;
+padding:6px;
+width:250px;
+}
+
+textarea{
+height:80px;
+}
+
+/* CAPSULE LIST */
+
+.capsule{
+border:2px solid skyblue;
+padding:10px;
+margin:10px 0;
+cursor:pointer;
+}
+
+.details{
+display:none;
+margin-top:8px;
+}
+
+button{
+padding:6px 10px;
+cursor:pointer;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="sidebar">
+
+<h3 onclick="toggle('account')">Account</h3>
+
+<div id="account">
+
+Name <input id="name">
+Age <input id="age" type="number">
+
+Sex
+<select id="sex">
+<option>Male</option>
+<option>Female</option>
+<option>Others</option>
+</select>
+
+<h4>Unlocked Messages</h4>
+<div id="unlockedList"></div>
+
+</div>
+
+<h3 onclick="toggle('settings')">Settings</h3>
+
+<div id="settings">
+
+Theme
+<select onchange="setTheme(this.value)">
+<option value="light">Normal</option>
+<option value="dark">Dark</option>
+</select>
+
+Order
+<select id="order" onchange="render()">
+<option value="creation">Creation Order</option>
+<option value="unlock">Unlock Date</option>
+</select>
+
+Direction
+<select id="direction" onchange="render()">
+<option value="new">New to Old</option>
+<option value="old">Old to New</option>
+</select>
+
+</div>
+
+</div>
+
+
+<div class="main">
+
+<h1>Time Capsule</h1>
+
+<button id="createBtn" onclick="toggleForm()">+ Create Capsule</button>
+
+<div class="form" id="form">
+
+Title
+<input id="title">
+
+Capsule Type
+<select id="type" onchange="switchType()">
+<option value="text">Text</option>
+<option value="audio">Audio</option>
+<option value="image">Image</option>
+</select>
+
+<div id="textInput">
+<textarea id="text"></textarea>
+</div>
+
+<div id="audioInput" style="display:none">
+<button onclick="record()">Record</button>
+<audio controls id="audio"></audio>
+</div>
+
+<div id="imageInput" style="display:none">
+<input type="file" id="image">
+</div>
+
+Lock out on
+<input type="date" id="date">
+
+<button onclick="createCapsule()">Create</button>
+
+</div>
+
+<div id="capsules"></div>
+
+</div>
+
+
+<script>
+
+/* TOGGLE MENU */
+
+function toggle(id){
+
+let el=document.getElementById(id);
+
+el.style.display = el.style.display=="block" ? "none":"block";
+
+}
+
+/* FORM */
+
+function toggleForm(){
+
+let f=document.getElementById("form");
+
+f.style.display=f.style.display=="block"?"none":"block";
+
+}
+
+/* SWITCH CAPSULE TYPE */
+
+function switchType(){
+
+let t=document.getElementById("type").value;
+
+document.getElementById("textInput").style.display="none";
+document.getElementById("audioInput").style.display="none";
+document.getElementById("imageInput").style.display="none";
+
+if(t=="text")document.getElementById("textInput").style.display="block";
+if(t=="audio")document.getElementById("audioInput").style.display="block";
+if(t=="image")document.getElementById("imageInput").style.display="block";
+
+}
+
+/* AUDIO RECORD */
+
+let recorder,stream;
+
+async function record(){
+
+stream=await navigator.mediaDevices.getUserMedia({audio:true});
+
+recorder=new MediaRecorder(stream);
+
+let chunks=[];
+
+recorder.ondataavailable=e=>chunks.push(e.data);
+
+recorder.onstop=e=>{
+
+let blob=new Blob(chunks);
+
+let url=URL.createObjectURL(blob);
+
+document.getElementById("audio").src=url;
+
+}
+
+recorder.start();
+
+setTimeout(()=>recorder.stop(),3000);
+
+}
+
+/* STORAGE */
+
+function getCapsules(){
+
+return JSON.parse(localStorage.getItem("capsules")||"[]");
+
+}
+
+function saveCapsules(data){
+
+localStorage.setItem("capsules",JSON.stringify(data));
+
+}
+
+/* CREATE CAPSULE */
+
+function createCapsule(){
+
+let title=document.getElementById("title").value;
+
+let type=document.getElementById("type").value;
+
+let date=document.getElementById("date").value;
+
+let content="";
+
+if(type=="text") content=document.getElementById("text").value;
+
+if(type=="audio") content=document.getElementById("audio").src;
+
+if(type=="image"){
+
+let file=document.getElementById("image").files[0];
+
+if(file){
+
+let reader=new FileReader();
+
+reader.onload=function(){
+
+addCapsule(title,type,date,reader.result);
+
+}
+
+reader.readAsDataURL(file);
+
+return;
+
+}
+
+}
+
+addCapsule(title,type,date,content);
+
+}
+
+/* ADD CAPSULE */
+
+function addCapsule(title,type,date,content){
+
+let list=getCapsules();
+
+list.push({
+
+title,type,date,content,created:Date.now()
+
+});
+
+saveCapsules(list);
+
+render();
+
+}
+
+/* RENDER */
+
+function render(){
+
+let list=getCapsules();
+
+let order=document.getElementById("order").value;
+
+let direction=document.getElementById("direction").value;
+
+if(order=="unlock"){
+
+list.sort((a,b)=>new Date(a.date)-new Date(b.date));
+
+}
+
+if(direction=="new") list.reverse();
+
+let container=document.getElementById("capsules");
+
+container.innerHTML="";
+
+let today=new Date();
+
+let unlocked=[];
+
+list.forEach((c,i)=>{
+
+let div=document.createElement("div");
+
+div.className="capsule";
+
+div.innerHTML="<b>"+c.title+"</b>";
+
+let details=document.createElement("div");
+
+details.className="details";
+
+let unlockedState=today>=new Date(c.date);
+
+if(unlockedState){
+
+unlocked.push(c.title);
+
+}
+
+details.innerHTML=
+
+"Lock out on: "+c.date+"<br>"+
+
+(showContent(c,unlockedState))+
+
+"<br><button onclick='deleteCapsule("+i+")'>Delete</button>";
+
+div.onclick=()=>{
+
+details.style.display=details.style.display=="block"?"none":"block";
+
+}
+
+div.appendChild(details);
+
+container.appendChild(div);
+
+});
+
+let u=document.getElementById("unlockedList");
+
+u.innerHTML=unlocked.join("<br>");
+
+}
+
+/* SHOW CONTENT */
+
+function showContent(c,unlocked){
+
+if(!unlocked) return "Locked";
+
+if(c.type=="text") return c.content;
+
+if(c.type=="audio") return "<audio controls src='"+c.content+"'></audio>";
+
+if(c.type=="image") return "<img src='"+c.content+"' width=150>";
+
+}
+
+/* DELETE */
+
+function deleteCapsule(i){
+
+let list=getCapsules();
+
+list.splice(i,1);
+
+saveCapsules(list);
+
+render();
+
+}
+
+/* THEME */
+
+function setTheme(t){
+
+document.body.className=t=="dark"?"dark":"";
+
+}
+
+/* INIT */
+
+render();
+
+</script>
+
+</body>
+</html>
+```
