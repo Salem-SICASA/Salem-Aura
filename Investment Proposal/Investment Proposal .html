@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Investment Proposals</title>
+<style>
+body{
+    margin:0;
+    font-family:Segoe UI, Arial, sans-serif;
+    background:#0b0f16;
+    color:#ffffff;
+}
+header{
+    text-align:center;
+    padding:20px;
+    font-size:28px;
+    color:#00ffd5;
+    letter-spacing:2px;
+}
+.tagline{
+    text-align:center;
+    color:#aaa;
+    font-size:13px;
+    margin-bottom:10px;
+}
+.container{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:15px;
+    padding:20px;
+}
+.panel{
+    background:#141a28;
+    padding:15px;
+    border-radius:15px;
+    box-shadow:0 0 20px rgba(0,0,0,0.8);
+}
+h2{color:#00ffd5;}
+label{display:block;margin-top:10px;}
+input,select{
+    width:100%;
+    padding:8px;
+    margin-top:5px;
+    border:none;
+    border-radius:8px;
+    background:#1f2638;
+    color:white;
+}
+button{
+    width:100%;
+    margin-top:15px;
+    padding:10px;
+    border:none;
+    border-radius:10px;
+    background:#00ffd5;
+    color:black;
+    font-size:16px;
+    cursor:pointer;
+}
+button:hover{background:#00c9a7;}
+.result{
+    margin-top:15px;
+    background:#1f2638;
+    padding:12px;
+    border-radius:10px;
+    animation:fade 0.5s;
+}
+.badge{
+    display:inline-block;
+    padding:4px 10px;
+    border-radius:20px;
+    background:#00ffd5;
+    color:black;
+    font-size:12px;
+    margin-bottom:6px;
+}
+ul{margin-left:18px;}
+table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:10px;
+    font-size:14px;
+}
+th,td{
+    border:1px solid #444;
+    padding:6px;
+    text-align:center;
+}
+th{background:#00ffd5;color:black;}
+footer{
+    text-align:center;
+    font-size:12px;
+    color:#888;
+    padding:8px;
+}
+@keyframes fade{
+    from{opacity:0;transform:translateY(8px);}
+    to{opacity:1;transform:translateY(0);}
+}
+.ideaBox{
+    background:#1f2638;
+    padding:10px;
+    border-radius:10px;
+    margin-top:10px;
+}
+</style>
+</head>
+<body>
+
+<header>Investment Proposals</header>
+<div class="tagline">Smart ideas for investing using platforms & apps</div>
+
+<div class="container">
+
+<!-- LEFT PANEL -->
+<div class="panel">
+<h2>📊 Investor Input</h2>
+
+<label>💰 Investment Amount (₹)</label>
+<input type="number" id="amount" placeholder="Enter amount">
+
+<label>⚖ Risk Level</label>
+<select id="risk">
+    <option value="low">Low – Safe</option>
+    <option value="medium">Medium – Balanced</option>
+    <option value="high">High – Growth</option>
+</select>
+
+<label>⏳ Time Horizon</label>
+<select id="time">
+    <option value="short">Short (1–2 yrs)</option>
+    <option value="medium">Medium (3–5 yrs)</option>
+    <option value="long">Long (5+ yrs)</option>
+</select>
+
+<button onclick="propose()">Generate Proposal</button>
+
+<div class="result" id="proposal"></div>
+
+<hr style="margin-top:15px;border-color:#333;">
+
+<h2>📅 Daily Investment Value</h2>
+
+<label>Date</label>
+<input type="date" id="date">
+
+<label>Value (₹)</label>
+<input type="number" id="value">
+
+<button onclick="addValue()">Add Entry</button>
+
+<table>
+<thead>
+<tr><th>Date</th><th>Value (₹)</th></tr>
+</thead>
+<tbody id="tableBody"></tbody>
+</table>
+
+</div>
+
+<!-- RIGHT PANEL -->
+<div class="panel">
+<h2>✅ DOs</h2>
+<div class="result">
+<ul>
+<li>Use trusted investment apps</li>
+<li>Invest small amounts regularly</li>
+<li>Enable security features</li>
+<li>Review portfolio monthly</li>
+<li>Learn before investing</li>
+</ul>
+</div>
+
+<h2>❌ DON’Ts</h2>
+<div class="result">
+<ul>
+<li>Don’t follow social media tips blindly</li>
+<li>Don’t invest all money in one asset</li>
+<li>Don’t panic during market fall</li>
+<li>Don’t expect instant profit</li>
+<li>Don’t use unknown apps</li>
+</ul>
+</div>
+
+<h2>💡 How to Invest (Ideas)</h2>
+<div class="ideaBox">
+<ul>
+<li>Start with SIP through mobile apps</li>
+<li>Choose index funds for safety</li>
+<li>Use demo or virtual trading first</li>
+<li>Split money into stocks + bonds</li>
+<li>Track daily value for awareness</li>
+</ul>
+</div>
+</div>
+
+</div>
+
+<footer>* Educational use only. Not financial advice.</footer>
+
+<script>
+let dailyData=[];
+
+function propose(){
+    let amt = Number(document.getElementById("amount").value);
+    let risk = document.getElementById("risk").value;
+    let time = document.getElementById("time").value;
+
+    if(amt<=0){
+        document.getElementById("proposal").innerHTML="Please enter a valid amount.";
+        return;
+    }
+
+    let apps="", returns="", tag="";
+
+    if(risk=="low"){
+        tag="SAFE PATH";
+        apps = `<ul>
+        <li>Bank FD Apps</li>
+        <li>Government Bond Platforms</li>
+        <li>Gold ETF Apps</li>
+        </ul>`;
+        returns="5% – 7% per year";
+    }
+    else if(risk=="medium"){
+        tag="BALANCED PATH";
+        apps = `<ul>
+        <li>Index Fund Apps</li>
+        <li>Large-cap Stock Platforms</li>
+        <li>Corporate Bond Apps</li>
+        </ul>`;
+        returns="8% – 12% per year";
+    }
+    else{
+        tag="GROWTH PATH";
+        apps = `<ul>
+        <li>Stock Trading Platforms</li>
+        <li>Small-cap Fund Apps</li>
+        <li>Sectoral Fund Apps</li>
+        </ul>`;
+        returns="12% – 18% per year";
+    }
+
+    document.getElementById("proposal").innerHTML = `
+    <span class="badge">${tag}</span>
+    <p><b>Amount:</b> ₹${amt}</p>
+    <p><b>Risk:</b> ${risk.toUpperCase()}</p>
+    <p><b>Duration:</b> ${time}</p>
+    <hr>
+    <b>Suggested Platforms & Apps:</b>
+    ${apps}
+    <b>Expected Return:</b> ${returns}
+    `;
+}
+
+function addValue(){
+    let d=document.getElementById("date").value;
+    let v=document.getElementById("value").value;
+
+    if(d==""||v=="") return;
+
+    dailyData.push({date:d,value:v});
+    renderTable();
+
+    document.getElementById("date").value="";
+    document.getElementById("value").value="";
+}
+
+function renderTable(){
+    let body=document.getElementById("tableBody");
+    body.innerHTML="";
+    dailyData.forEach(r=>{
+        body.innerHTML+=`<tr><td>${r.date}</td><td>${r.value}</td></tr>`;
+    });
+}
+</script>
+
+</body>
+</html>
