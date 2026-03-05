@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Streak Sensei</title>
+
+<style>
+body{
+    margin:0;
+    font-family:'Segoe UI',sans-serif;
+    background:radial-gradient(circle at center,#1a1a2e,#0f0f1a 70%);
+    color:white;
+}
+header{
+    text-align:center;
+    padding:25px;
+    font-size:32px;
+    font-weight:bold;
+    letter-spacing:3px;
+    background:linear-gradient(90deg,#00f5ff,#ff00c8);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+}
+.container{
+    width:90%;
+    max-width:900px;
+    margin:auto;
+    text-align:center;
+}
+input,button{
+    padding:10px;
+    border-radius:8px;
+    border:none;
+    margin:5px;
+}
+input{width:60%;}
+button{cursor:pointer;font-weight:bold;}
+button:hover{transform:scale(1.05);}
+.add-btn{background:#00f5ff;color:black;}
+
+.habit-card{
+    background:rgba(255,255,255,0.08);
+    padding:18px;
+    margin-top:20px;
+    border-radius:15px;
+}
+
+.progress-bar{
+    width:100%;
+    height:12px;
+    background:rgba(255,255,255,0.2);
+    border-radius:8px;
+    margin-top:8px;
+}
+.progress-fill{
+    height:100%;
+    background:linear-gradient(90deg,#00f5ff,#ff00c8);
+    border-radius:8px;
+}
+
+.achievements,.log-section{
+    margin-top:30px;
+    padding:20px;
+    background:rgba(255,255,255,0.08);
+    border-radius:15px;
+}
+
+.medal-boxes{
+    display:flex;
+    justify-content:space-around;
+    margin-top:10px;
+}
+.medal-box{
+    background:rgba(0,0,0,0.4);
+    padding:15px;
+    border-radius:12px;
+    width:28%;
+    font-size:18px;
+}
+
+.log-section{
+    max-height:220px;
+    overflow-y:auto;
+}
+
+.action-btn{
+    margin-top:8px;
+}
+</style>
+</head>
+<body>
+
+<header>⚡ STREAK SENSEI ⚡</header>
+
+<div class="container">
+
+<input type="text" id="habitName" placeholder="Enter your discipline...">
+<button class="add-btn" onclick="addHabit()">Add</button>
+
+<br>
+<button onclick="exportData()">Export Backup</button>
+<input type="file" id="importFile" style="display:none" onchange="importData(this.files[0])">
+<button onclick="document.getElementById('importFile').click()">Import Backup</button>
+
+<div id="habitList"></div>
+
+<div class="achievements">
+    <h2>🔥 Achievements</h2>
+    <div class="medal-boxes">
+        <div class="medal-box">🥇 Gold<br><span id="goldCount">0</span></div>
+        <div class="medal-box">🥈 Silver<br><span id="silverCount">0</span></div>
+        <div class="medal-box">🥉 Bronze<br><span id="bronzeCount">0</span></div>
+    </div>
+</div>
+
+<div class="log-section">
+    <h2>🏆 Mastery Log</h2>
+    <div id="activityLog"></div>
+</div>
+
+</div>
+
+<script>
+
+let habits = JSON.parse(localStorage.getItem("habits")) || [];
+let activityLog = JSON.parse(localStorage.getItem("activityLog")) || [];
+
+const today = new Date();
+const currentMonth = today.getMonth();
+const currentYear = today.getFullYear();
+const monthName = today.toLocaleString('default',{month:'long'});
+const totalDaysInMonth = new Date(currentYear,currentMonth+1,0).getDate();
+
+// ===== ADD =====
+function addHabit(){
+    const name=document.getElementById("habitName").value.trim();
+    if(!name)return;
+
+    habits.push({
+        id:Date.now(),
+        name,
+        completedDays:0,
+        milestone60:false,
+        milestone80:false,
+        milestone100:false
+    });
+
+    saveData();
+    renderHabits();
+    document.getElementById("habitName").value="";
+}
+
+// ===== COMPLETE =====
+function completeDay(id){
+    const habit=habits.find(h=>h.id===id);
+    if(!habit)return;
+
+    if(habit.completedDays<totalDaysInMonth)
+        habit.completedDays++;
+
+    let percentage=(habit.completedDays/totalDaysInMonth)*100;
+
+    if(percentage>=60 && !habit.milestone60){
+        activityLog.unshift({text:`${habit.name} reached 60%`,level:"bronze"});
+        habit.milestone60=true;
+    }
+    if(percentage>=80 && !habit.milestone80){
+        activityLog.unshift({text:`${habit.name} reached 80%`,level:"silver"});
+        habit.milestone80=true;
+    }
+    if(percentage>=100 && !habit.milestone100){
+        activityLog.unshift({text:`${habit.name} mastered ${monthName}`,level:"gold"});
+        habit.milestone100=true;
+    }
+
+    saveData();
+    renderHabits();
+}
+
+// ===== EDIT =====
+function editHabit(id){
+    const habit=habits.find(h=>h.id===id);
+    const newName=prompt("Edit habit name:",habit.name);
+    if(newName){
+        habit.name=newName.trim();
+        saveData();
+        renderHabits();
+    }
+}
+
+// ===== DELETE =====
+function deleteHabit(id){
+    habits=habits.filter(h=>h.id!==id);
+    saveData();
+    renderHabits();
+}
+
+// ===== MONTH RESET + MEDAL AWARD =====
+function checkMonthReset(){
+    const storedMonth=localStorage.getItem("storedMonth");
+    const storedYear=localStorage.getItem("storedYear");
+
+    if(storedMonth==null||storedYear==null){
+        localStorage.setItem("storedMonth",currentMonth);
+        localStorage.setItem("storedYear",currentYear);
+        return;
+    }
+
+    if(parseInt(storedMonth)!==currentMonth || parseInt(storedYear)!==currentYear){
+
+        habits.forEach(habit=>{
+            const percentage=(habit.completedDays/totalDaysInMonth)*100;
+
+            if(percentage>=100)
+                activityLog.unshift({text:`${habit.name} earned Gold Medal`,level:"gold"});
+            else if(percentage>=80)
+                activityLog.unshift({text:`${habit.name} earned Silver Medal`,level:"silver"});
+            else if(percentage>=60)
+                activityLog.unshift({text:`${habit.name} earned Bronze Medal`,level:"bronze"});
+
+            habit.completedDays=0;
+            habit.milestone60=false;
+            habit.milestone80=false;
+            habit.milestone100=false;
+        });
+
+        localStorage.setItem("storedMonth",currentMonth);
+        localStorage.setItem("storedYear",currentYear);
+        saveData();
+    }
+}
+
+// ===== RENDER =====
+function renderHabits(){
+    const container=document.getElementById("habitList");
+    container.innerHTML="";
+
+    habits.forEach(habit=>{
+        const percentage=((habit.completedDays/totalDaysInMonth)*100).toFixed(1);
+
+        const card=document.createElement("div");
+        card.className="habit-card";
+        card.innerHTML=`
+            <h3>${habit.name}</h3>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width:${percentage}%"></div>
+            </div>
+            <p>${percentage}% Complete</p>
+            <button onclick="completeDay(${habit.id})">+ Complete</button>
+            <div class="action-btn">
+                <button onclick="editHabit(${habit.id})">Edit</button>
+                <button onclick="deleteHabit(${habit.id})">Delete</button>
+            </div>
+        `;
+        container.appendChild(card);
+    });
+
+    renderLog();
+}
+
+function renderLog(){
+    const log=document.getElementById("activityLog");
+    log.innerHTML="";
+
+    let gold=0,silver=0,bronze=0;
+
+    activityLog.forEach(e=>{
+        if(!e)return;
+        const p=document.createElement("p");
+        p.textContent=e.text;
+
+        if(e.level==="gold"){p.style.color="gold";gold++;}
+        else if(e.level==="silver"){p.style.color="silver";silver++;}
+        else if(e.level==="bronze"){p.style.color="#cd7f32";bronze++;}
+
+        log.appendChild(p);
+    });
+
+    document.getElementById("goldCount").textContent=gold;
+    document.getElementById("silverCount").textContent=silver;
+    document.getElementById("bronzeCount").textContent=bronze;
+}
+
+// ===== STORAGE =====
+function saveData(){
+    localStorage.setItem("habits",JSON.stringify(habits));
+    localStorage.setItem("activityLog",JSON.stringify(activityLog));
+}
+
+// ===== EXPORT / IMPORT =====
+function exportData(){
+    const dataStr=JSON.stringify({habits,activityLog});
+    const blob=new Blob([dataStr],{type:"application/json"});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;
+    a.download="streak_sensei_backup.json";
+    a.click();
+}
+
+function importData(file){
+    const reader=new FileReader();
+    reader.onload=function(e){
+        const data=JSON.parse(e.target.result);
+        habits=data.habits||[];
+        activityLog=data.activityLog||[];
+        saveData();
+        renderHabits();
+        alert("Backup restored successfully!");
+    };
+    reader.readAsText(file);
+}
+
+checkMonthReset();
+renderHabits();
+
+</script>
+</body>
+</html>
