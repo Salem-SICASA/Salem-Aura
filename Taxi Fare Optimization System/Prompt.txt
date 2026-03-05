@@ -1,0 +1,15 @@
+Create a single HTML + CSS + Java script file app for cab company to measure their charge from customer depending on road type customer quantity petrol price car engine type mileage details 
+number of days festival season offer
+
+road type should be one out of any three option
+customer quantity in numbers
+petrol price should be auto populated from any official website
+car engine selection should be based on cc seating capacities
+mileage details should be based on road type
+How many KM travelled
+Based on the above information selected
+Theme of the web site cab image in background
+colour of the page taxi yellow
+MAKE a rating point system based on particular customer frequency 
+
+App want to decide the optimal price
