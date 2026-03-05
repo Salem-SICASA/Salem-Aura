@@ -1,0 +1,120 @@
+App Name: study Journal
+Core Purpose
+• Plan subjects
+• Track exams
+• Schedule revisions
+• Manage daily tasks
+• Get smart reminders
+• Monitor performance
+
+1.	Dashboard (Home Screen)
+• Today’s Schedule calendar date has to be provided
+• Upcoming Exams rows and column with features like subject, exam date .rows and 
+Columns can be added or deleted based on preferences
+• Revision Due Today if any plans has been made prior give a pop up that revision due Today that are aligned with previous study plan
+• Pending Tasks if any study task is not completed show as pending tasks
+• Weekly Study Hours Graph
+2.	Subject Manager
+User can:
+• Add unlimited subjects
+• Assign color to each subject
+• Add syllabus units / chapters
+• Track completion in percentage numbers
+Example:Subject Chapters, Completed Progress.
+An detailed report of our study time and task completed
+3.	Smart To-Do List
+4.	Features:
+• Add task
+• Link task to subject
+• Add deadline
+• Add priority (High / Medium / Low)
+• Mark complete
+• Drag and reorder tasks
+Example:
+• Revise Integration – High
+• Physics Numericals – Medium
+
+5.	Revision Reminder System (Most Important Feature)
+This should use:
+Spaced Repetition Logic:
+• Day 1 → After studying
+• Day 3 → 2nd revision
+• Day 7 → 3rd revision
+• Day 15 → Final revision
+
+User selects:
+• Chapter
+• First study date
+App auto-generates revision reminders.
+This will dramatically improve retention.
+The above things has to be mentioned in rows and columns 
+6.	Exam Tracker
+Columns:
+• Subject
+• Exam Date
+• Portion
+• Preparation Level (slider)
+• Countdown timer start and stop option
+Example:
+Maths – 10 March – 5 days left
+7.	Timetable Planner
+User can:
+• Create weekly timetable
+• Drag subjects into time slots
+• Add break time
+• Repeat weekly
+Prepare rows and columns that can be added or deleted based on preferences of user 
+8.	Focus Timer Mode
+Features:
+• 25 / 45 / Custom timer
+ Distraction lock (optional)
+• Study session history
+• Daily focus hours total
+7. Performance Analytics
+Weekly:
+• Total study hours
+• Most studied subject
+• Missed tasks
+• Revision completion %
+Visual charts:
+• Bar graph for subject hours
+• Pie chart for time distribution
+Based on the input that is the study Planner prepared show the above mentioned features
+9.	Smart Notification System
+• Morning reminder: “Today you have 3 tasks.”
+• Evening summary: “You completed 4/5 tasks.”
+• Revision alerts pop up
+• Exam countdown alerts
+No of data before exam aligned with calendar date
+10.	Notes Section
+For each subject:
+• Quick notes
+• Tag chapters
+• Search function of our study Planner
+10.Gamification
+• Streak system 
+• Study XP points
+• Level badges:
+• Beginner
+• Consistent Learner
+• Master Planner
+• Exam Warrior
+True spaced repetition auto calendar system
+Drag & drop timetable
+Subject color coding
+Pie chart analytics
+Smart notification system
+Dark mode toggle
+Based on performance give badges to the user provide streak and study points  to the user
+Add separate to do list column
+Design Suggestions
+• Clean white or pastel theme
+• Subject color coding
+• Simple fonts
+• No clutter
+• Dark mode option
+Add auto calendar alignment
+We can add or delete rows 
+If task completed Make a blast like emojis for every topic 
+Create a code html+,css+,javascript
+
