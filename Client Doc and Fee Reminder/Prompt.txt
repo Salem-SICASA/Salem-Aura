@@ -1,0 +1,30 @@
+CLIENT DOC AND FEE REMINDER
+
+Create a Single page HTML+CSS+JS web application for a CA Professional called "Client Doc and Fee Reminder"
+
+The app should include:
+Input:
+File Number
+Client Name
+PAN
+Whatsapp Number with country code
+Entity Type (Drop Down: Individual, Firm, LLP, Company, Trust, HUF, AOP/BOI)
+Required Documents (List to be shown automatically based on the entity chosen and there should be manual edit option to add or remove any documents in the list)(It should include columns showing document received status and option to edit the status)
+Fee Details: 
+Total Fees
+Fee collected
+Pending Fee 
+(All the Text areas should be editable) (The pending status to have the option for editing and updating the status)
+
+On clicking Add client:
+Display Client details in File number wise in a table (The client should be identifiable based on their PAN, NAME or PAN- Include a search client option by enabling user to use any one of the option) 
+
+Allow editing of all the Text fields
+
+Include Reminder button for each client, On clicking the reminder whatsapp message to be sent to the client's whatsapp number reminding the pending documents(specify the documents) and pendind fee 
+
+Professional Blue Gradient with dark theme Background 
+
+App Interface contain any Short quote relating to that app .. Include a Footer "Created by Swetha CA"
+
+
