@@ -1,0 +1,64 @@
+Create a single-page web application using HTML, CSS, and vanilla JavaScript in a single file.
+
+Application name: Love Compatibility Calculator.
+
+Functional Requirements:
+
+1. Input Fields
+- Your Name (text)
+- Your Age (number)
+- Your Gender (dropdown: Male / Female / Other)
+- Partner Name (text)
+- Partner Age (number)
+- Partner Gender (dropdown: Male / Female / Other)
+
+2. Buttons
+- "Calculate Love"
+- "Reset"
+
+3. Validation
+- All fields must be mandatory.
+- Age must be between 18 and 80.
+- Display validation error messages in red text.
+
+4. Love Percentage Calculation
+- Do not generate purely random results.
+- Use a logic that:
+  - Converts names to lowercase
+  - Calculates a score based on ASCII values of characters
+  - Adds an age compatibility factor (smaller age difference = higher score)
+  - Adds a gender compatibility bonus
+  - Final percentage must be between 1 and 100.
+
+5. Special Condition
+If:
+- Male name = "karthikeyan"
+- Female name = "lakshmi"
+
+Then:
+- Love percentage must always be 100%.
+- Display a large animated heart emoji as the result.
+
+6. Result Display
+- Show the percentage in large text.
+- Display a progress bar that fills to the percentage value.
+- Show compatibility message:
+  - Below 50% → sad emoji 😢 and message "Not a strong match"
+  - 50%–99% → smile emoji 😊 and message "Great compatibility"
+  - 100% → large animated heart 💖 and message "Perfect Match! Destiny Connected!"
+
+7. UI Design
+- Romantic pink gradient background.
+- Centered card layout with rounded corners.
+- Soft shadow effect.
+- Smooth result animation (fade-in).
+- Mobile responsive design.
+
+8. Background
+- Add a faint watermark image of a romantic couple in the background using CSS (low opacity).
+
+9. Technical Constraints
+- Use only vanilla HTML, CSS, and JavaScript.
+- Internal CSS and JS only (no external libraries).
+- Clean and well-structured code.
+- Output the complete working code in one HTML file.
