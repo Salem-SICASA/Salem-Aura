@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Love Compatibility Calculator</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #ff9ecb, #ffc1d9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+}
+
+/* Watermark Couple Image */
+body::before {
+    content: "";
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: 500px;
+    height: 500px;
+    background: url('https://i.imgur.com/8Km9tLL.png') no-repeat center;
+    background-size: contain;
+    opacity: 0.07;
+    transform: translate(-50%, -50%);
+    z-index: 0;
+}
+
+.card {
+    background: #fff0f6;
+    width: 95%;
+    max-width: 500px;
+    padding: 25px;
+    border-radius: 25px;
+    box-shadow: 0 10px 30px rgba(255,105,180,0.4);
+    text-align: center;
+    position: relative;
+    z-index: 1;
+}
+
+h2 {
+    color: #e60073;
+}
+
+input, select {
+    width: 100%;
+    padding: 8px;
+    margin: 6px 0;
+    border-radius: 10px;
+    border: 1px solid #ffb6d9;
+}
+
+button {
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+    border: none;
+    border-radius: 15px;
+    background: #ff4da6;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #e60073;
+}
+
+.reset-btn {
+    background: #999;
+}
+
+.error {
+    color: red;
+    font-size: 14px;
+}
+
+.result {
+    margin-top: 20px;
+    display: none;
+    animation: fadeIn 0.8s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.percentage {
+    font-size: 45px;
+    font-weight: bold;
+    color: #ff0066;
+}
+
+.emoji {
+    font-size: 40px;
+    margin-top: 10px;
+}
+
+.big-heart {
+    font-size: 90px;
+    animation: beat 0.6s infinite alternate;
+}
+
+@keyframes beat {
+    from { transform: scale(1); }
+    to { transform: scale(1.2); }
+}
+
+.progress-container {
+    width: 100%;
+    background: #ffd6e8;
+    border-radius: 20px;
+    margin-top: 10px;
+    height: 20px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    width: 0;
+    background: linear-gradient(to right, #ff4da6, #ff99cc);
+    transition: width 1.5s ease-in-out;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+    <h2>💗 Love Compatibility Calculator 💗</h2>
+
+    <input type="text" id="name1" placeholder="Your Name">
+    <input type="number" id="age1" placeholder="Your Age">
+    <select id="gender1">
+        <option value="">Your Gender</option>
+        <option>Male</option>
+        <option>Female</option>
+        <option>Other</option>
+    </select>
+
+    <input type="text" id="name2" placeholder="Partner Name">
+    <input type="number" id="age2" placeholder="Partner Age">
+    <select id="gender2">
+        <option value="">Partner Gender</option>
+        <option>Male</option>
+        <option>Female</option>
+        <option>Other</option>
+    </select>
+
+    <div class="error" id="error"></div>
+
+    <button onclick="calculateLove()">Calculate Love</button>
+    <button class="reset-btn" onclick="resetForm()">Reset</button>
+
+    <div class="result" id="result">
+        <div class="percentage" id="percentage"></div>
+        <div class="progress-container">
+            <div class="progress-bar" id="progress"></div>
+        </div>
+        <div class="emoji" id="emoji"></div>
+        <p id="message"></p>
+    </div>
+</div>
+
+<script>
+function calculateLove() {
+
+    let name1 = document.getElementById("name1").value.trim().toLowerCase();
+    let name2 = document.getElementById("name2").value.trim().toLowerCase();
+    let age1 = parseInt(document.getElementById("age1").value);
+    let age2 = parseInt(document.getElementById("age2").value);
+    let gender1 = document.getElementById("gender1").value;
+    let gender2 = document.getElementById("gender2").value;
+
+    let error = document.getElementById("error");
+    error.innerText = "";
+
+    if(!name1 || !name2 || !age1 || !age2 || !gender1 || !gender2){
+        error.innerText = "All fields are mandatory.";
+        return;
+    }
+
+    if(age1 < 18 || age1 > 80 || age2 < 18 || age2 > 80){
+        error.innerText = "Age must be between 18 and 80.";
+        return;
+    }
+
+    let percentage;
+
+    // Special condition
+    if(
+        gender1 === "Male" && gender2 === "Female" &&
+        name1 === "karthikeyan" && name2 === "lakshmi"
+    ){
+        percentage = 100;
+    }
+    else {
+
+        function nameScore(name){
+            let score = 0;
+            for(let i=0; i<name.length; i++){
+                score += name.charCodeAt(i);
+            }
+            return score;
+        }
+
+        let score1 = nameScore(name1);
+        let score2 = nameScore(name2);
+
+        let ageDiff = Math.abs(age1 - age2);
+        let ageScore = Math.max(0, 30 - ageDiff);
+
+        let genderBonus = (gender1 !== gender2) ? 10 : 5;
+
+        let total = (score1 + score2 + ageScore + genderBonus) % 100;
+        percentage = Math.max(1, total);
+    }
+
+    let emoji = "";
+    let message = "";
+
+    if(percentage < 50){
+        emoji = "😢";
+        message = "Not a strong match";
+    }
+    else if(percentage < 100){
+        emoji = "😊";
+        message = "Great compatibility";
+    }
+    else{
+        emoji = "💖";
+        message = "Perfect Match! Destiny Connected!";
+    }
+
+    document.getElementById("percentage").innerText = percentage + "%";
+    document.getElementById("progress").style.width = percentage + "%";
+
+    if(percentage === 100){
+        document.getElementById("emoji").innerHTML = `<div class="big-heart">${emoji}</div>`;
+    } else {
+        document.getElementById("emoji").innerHTML = emoji;
+    }
+
+    document.getElementById("message").innerText = message;
+    document.getElementById("result").style.display = "block";
+}
+
+function resetForm(){
+    document.querySelectorAll("input").forEach(i => i.value = "");
+    document.querySelectorAll("select").forEach(s => s.selectedIndex = 0);
+    document.getElementById("result").style.display = "none";
+    document.getElementById("error").innerText = "";
+    document.getElementById("progress").style.width = "0";
+}
+</script>
+
+</body>
+</html>
