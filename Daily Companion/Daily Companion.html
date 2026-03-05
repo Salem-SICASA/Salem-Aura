@@ -1,0 +1,947 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Daily Companion — Google Picks + Spotify Taste</title>
+<style>
+  :root{
+    --bg:#0b1220; --card:#121c33; --text:#eaf1ff; --muted:#9bb0d6;
+    --line:rgba(255,255,255,.12); --accent:#6ea8fe; --good:#46d39a; --warn:#ffd166; --bad:#ff6b6b;
+    --shadow:0 14px 40px rgba(0,0,0,.35); --r:18px;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; padding:16px;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", sans-serif;
+    background:
+      radial-gradient(1200px 800px at 20% 10%, rgba(110,168,254,.25), transparent 50%),
+      radial-gradient(900px 700px at 90% 20%, rgba(70,211,154,.18), transparent 55%),
+      var(--bg);
+    color:var(--text);
+  }
+  .wrap{max-width:1200px;margin:0 auto}
+  header{display:flex;gap:12px;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;margin-bottom:12px}
+  h1{margin:0;font-size:18px}
+  .sub{margin-top:6px;color:var(--muted);font-size:12px;line-height:1.35;max-width:900px}
+  .pill{border:1px solid var(--line);background:rgba(255,255,255,.04);padding:8px 10px;border-radius:999px;color:var(--muted);font-size:12px;max-width:700px}
+
+  .grid{display:grid;grid-template-columns:1.1fr .9fr;gap:12px}
+  @media (max-width:980px){.grid{grid-template-columns:1fr}}
+
+  .card{
+    background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+    border:1px solid var(--line);
+    border-radius:var(--r);
+    padding:14px;
+    box-shadow:var(--shadow);
+  }
+  .split{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+  .tag{display:inline-flex;align-items:center;gap:8px;font-size:11px;color:var(--muted);border:1px solid var(--line);background:rgba(255,255,255,.04);padding:5px 8px;border-radius:999px}
+  .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;}
+  .divider{height:1px;background:var(--line);margin:10px 0}
+
+  label{font-size:12px;color:var(--muted)}
+  input, select, textarea{
+    width:100%; padding:10px 12px; border-radius:14px;
+    border:1px solid var(--line); background:rgba(0,0,0,.18);
+    color:var(--text); outline:none;
+  }
+  textarea{min-height:82px;resize:vertical}
+  input:focus, select:focus, textarea:focus{border-color:rgba(110,168,254,.65); box-shadow:0 0 0 3px rgba(110,168,254,.18)}
+
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  @media (max-width:680px){.row{grid-template-columns:1fr}}
+
+  .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+  button{
+    border:1px solid var(--line);
+    background: rgba(110,168,254,.14);
+    color:var(--text);
+    padding:10px 12px;border-radius:14px;
+    cursor:pointer;font-weight:700;
+  }
+  button:hover{border-color:rgba(110,168,254,.55)}
+  .ghost{background:rgba(255,255,255,.04)}
+  .ok{background:rgba(70,211,154,.14)}
+  .warn{background:rgba(255,209,102,.12)}
+  .danger{background:rgba(255,107,107,.12)}
+
+  .small{font-size:12px;color:var(--muted);line-height:1.35;margin-top:6px}
+
+  /* chat */
+  .chat{display:flex;flex-direction:column;gap:8px;max-height:520px;overflow:auto;padding-right:6px}
+  .bubble{
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:9px 11px;
+    background:rgba(0,0,0,.18);
+    line-height:1.35;
+    font-size:13px;
+    box-shadow: 0 6px 16px rgba(0,0,0,.22);
+    max-width:86%;
+  }
+  .me{align-self:flex-end;background:rgba(110,168,254,.12)}
+  .bot{align-self:flex-start;background:rgba(70,211,154,.10)}
+  .meta{font-size:10px;color:var(--muted);margin-bottom:4px}
+
+  details{border:1px solid var(--line);border-radius:16px;padding:10px 12px;background:rgba(255,255,255,.03);margin-top:10px}
+  summary{cursor:pointer;font-weight:800}
+
+  /* results */
+  .results{display:grid;gap:10px;margin-top:10px}
+  .tile{
+    border:1px solid var(--line);
+    background:rgba(0,0,0,.16);
+    border-radius:16px;
+    padding:10px;
+  }
+  .tile b{font-size:13px}
+  .tile .meta2{color:var(--muted);font-size:12px;margin-top:6px}
+  .tile a{color:var(--accent);text-decoration:none}
+
+  /* modal */
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:16px;z-index:99}
+  .modal{width:min(820px,100%);background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:14px}
+  .modalTop{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .modalTop b{font-size:14px}
+  .modalBody{color:var(--text);line-height:1.35;font-size:13px}
+  iframe{border:0}
+  .embedWrap{border:1px solid var(--line);border-radius:16px;overflow:hidden;background:rgba(0,0,0,.18)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Daily Companion</h1>
+      <div class="sub">
+        Movie + food picks can be shown inside the app using an API key (SerpAPI).
+        Spotify uses OAuth (no passwords). Chat replies are short + character-based + less repetitive.
+      </div>
+    </div>
+    <div class="pill">
+      For Google-in-app results: set <span class="mono">SerpAPI Key</span>. Without it, the app opens Google/Maps and you choose fast.
+    </div>
+  </header>
+
+  <div class="grid">
+    <!-- LEFT: CHAT -->
+    <section class="card">
+      <div class="split">
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <b style="font-size:15px">Chat</b>
+          <span class="tag"><span id="dot">●</span><span id="period">—</span></span>
+          <span class="tag">Character: <span class="mono" id="modeTag">—</span></span>
+        </div>
+        <span class="tag"><span class="mono">local</span><span id="profileTag">no profile</span></span>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="chat" id="chat"></div>
+
+      <div class="divider"></div>
+
+      <div class="row">
+        <div>
+          <label for="msg">Say something</label>
+          <textarea id="msg" placeholder="movie / food / music / study / gym / talk"></textarea>
+          <div class="small">Send: <span class="mono">Ctrl+Enter</span></div>
+        </div>
+        <div>
+          <label for="character">Preferred character</label>
+          <select id="character">
+            <option value="friend">Friend</option>
+            <option value="mentor">Mentor</option>
+            <option value="sister">Sister</option>
+            <option value="father">Father</option>
+          </select>
+
+          <div style="height:10px"></div>
+
+          <label for="tone">Tone</label>
+          <select id="tone">
+            <option value="soft">Soft</option>
+            <option value="calm" selected>Calm</option>
+            <option value="bold">Bold</option>
+          </select>
+
+          <div class="actions">
+            <button id="send" class="ok">Send</button>
+            <button id="checkin" class="warn">Check-in</button>
+            <button id="clear" class="ghost">Clear</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT: SETTINGS + RECO -->
+    <aside class="card">
+      <div class="split">
+        <b style="font-size:15px">Preferences</b>
+        <span class="tag"><span id="nameTag">—</span></span>
+      </div>
+
+      <div class="row" style="margin-top:10px">
+        <div>
+          <label for="name">Your name</label>
+          <input id="name" placeholder="Akilan" />
+        </div>
+        <div>
+          <label for="favLang">Fav language</label>
+          <input id="favLang" placeholder="Tamil / Hindi / English" />
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:10px">
+        <div>
+          <label for="city">City/area</label>
+          <input id="city" placeholder="Salem" />
+        </div>
+        <div>
+          <label for="goal">Today goal</label>
+          <input id="goal" placeholder="Study 2h / gym / relax" />
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:10px">
+        <div>
+          <label for="serpKey">SerpAPI Key (optional, for in-app Google results)</label>
+          <input id="serpKey" placeholder="Paste SerpAPI key (kept locally)" />
+          <div class="small">If empty → app uses “open Google/Maps” fallback.</div>
+        </div>
+        <div>
+          <label for="budget">Food budget (₹ per person)</label>
+          <input id="budget" placeholder="100–250 / 300–600" />
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="saveProfile" class="ok">Save</button>
+        <button id="resetAll" class="danger">Reset all</button>
+      </div>
+
+      <details open>
+        <summary>🎥 Movie picks</summary>
+        <div class="row" style="margin-top:10px">
+          <div>
+            <label for="movMood">Mood / genre</label>
+            <input id="movMood" placeholder="feel-good / action / thriller" />
+          </div>
+          <div>
+            <label for="movPlatform">Platform (optional)</label>
+            <input id="movPlatform" placeholder="Netflix / Prime / Hotstar" />
+          </div>
+        </div>
+        <div class="actions">
+          <button id="movieGo" class="ok">Get recommendations</button>
+          <button id="movieOpen" class="ghost">Open Google instead</button>
+        </div>
+        <div class="results" id="movieResults"></div>
+      </details>
+
+      <details open>
+        <summary>🍜 Food spots</summary>
+        <div class="row" style="margin-top:10px">
+          <div>
+            <label for="foodPref">Food preference</label>
+            <input id="foodPref" placeholder="biryani / veg meals / cafe" />
+          </div>
+          <div>
+            <label for="foodVibe">Vibe</label>
+            <input id="foodVibe" placeholder="street / family / quick bite" />
+          </div>
+        </div>
+        <div class="actions">
+          <button id="foodGo" class="ok">Get recommendations</button>
+          <button id="foodOpen" class="ghost">Open Maps instead</button>
+        </div>
+        <div class="results" id="foodResults"></div>
+      </details>
+
+      <details open>
+        <summary>🎵 Spotify (taste-based)</summary>
+        <div class="small">
+          No passwords. You’ll login via Spotify OAuth. After login, the app can search and embed tracks/playlists based on your taste.
+        </div>
+        <div class="actions" style="margin-top:10px">
+          <button id="spotifyLogin" class="ok">Login to Spotify</button>
+          <button id="spotifyLogout" class="ghost">Logout</button>
+        </div>
+        <div class="row" style="margin-top:10px">
+          <div>
+            <label for="musicTaste">Your taste (artist/song/mood)</label>
+            <input id="musicTaste" placeholder="A.R. Rahman chill / workout / lo-fi" />
+          </div>
+          <div>
+            <label for="musicLang">Music language</label>
+            <input id="musicLang" placeholder="Tamil / Hindi / English" />
+          </div>
+        </div>
+        <div class="actions">
+          <button id="musicSearch" class="warn">Find & play</button>
+        </div>
+
+        <div class="small" style="margin-top:10px">
+          Default seed playlist loaded (your link): <span class="mono">6zTiiA1NGJZn33jejJVuM5</span>
+        </div>
+        <div class="embedWrap" style="margin-top:10px">
+          <iframe id="spotifyFrame" width="100%" height="152"
+            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+            loading="lazy"
+            src="https://open.spotify.com/embed/playlist/6zTiiA1NGJZn33jejJVuM5"
+            title="Spotify Player"></iframe>
+        </div>
+
+        <div class="small" style="margin-top:10px">
+          Note: Full “play in background” needs Spotify Premium + Web Playback SDK. This app uses embeds (works for most).
+        </div>
+      </details>
+    </aside>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="modalTop">
+      <b id="modalTitle">Before we start…</b>
+      <button class="ghost" id="closeModal">Close</button>
+    </div>
+    <div class="divider"></div>
+    <div class="modalBody" id="modalBody"></div>
+    <div class="actions" style="margin-top:12px">
+      <button id="prefDone" class="ok">Done</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =======================
+   Storage
+======================= */
+const LS = {
+  profile: "dc3_profile_v1",
+  chat: "dc3_chat_v1",
+  lastReplies: "dc3_lastReplies_v1",
+  serpKey: "dc3_serpKey_v1",
+  spotify: "dc3_spotify_v1",
+  spotifyPKCE: "dc3_spotify_pkce_v1",
+  greeted: "dc3_greet_v1"
+};
+const $ = (id) => document.getElementById(id);
+const pick = (a)=>a[Math.floor(Math.random()*a.length)];
+function safeParse(s, fb){ try { return JSON.parse(s); } catch { return fb; } }
+function load(key, fb){ const v = localStorage.getItem(key); return v ? safeParse(v, fb) : fb; }
+function save(key, val){ localStorage.setItem(key, JSON.stringify(val)); }
+function esc(s){
+  return (s ?? "").toString()
+    .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;").replaceAll("'","&#039;");
+}
+function clamp(s, max=600){ s=(s??"").toString().trim(); return s.length>max ? s.slice(0,max)+"…" : s; }
+
+function period(){
+  const h = new Date().getHours();
+  if (h>=5 && h<12) return "morning";
+  if (h>=12 && h<17) return "afternoon";
+  return "night";
+}
+function todayKey(){
+  const d=new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+}
+function setPeriodUI(){
+  const p = period();
+  $("period").textContent = p[0].toUpperCase()+p.slice(1);
+  $("dot").style.color = p==="morning" ? "var(--good)" : p==="afternoon" ? "var(--warn)" : "var(--accent)";
+}
+
+/* =======================
+   Profile
+======================= */
+function getProfile(){ return load(LS.profile, { name:"", favLang:"", city:"", goal:"", budget:"" }); }
+function setProfile(p){ save(LS.profile, p); }
+
+function renderProfile(){
+  const p = getProfile();
+  $("name").value = p.name || "";
+  $("favLang").value = p.favLang || "";
+  $("city").value = p.city || "";
+  $("goal").value = p.goal || "";
+  $("budget").value = p.budget || "";
+  $("profileTag").textContent = p.name?.trim() ? p.name.trim() : "no profile";
+  $("nameTag").textContent = p.name?.trim() ? p.name.trim() : "no name";
+}
+
+/* =======================
+   Chat
+======================= */
+function getChat(){ return load(LS.chat, []); }
+function setChat(c){ save(LS.chat, c); }
+function renderChat(scroll=true){
+  const el = $("chat");
+  el.innerHTML="";
+  for (const m of getChat()){
+    const div=document.createElement("div");
+    div.className="bubble "+(m.role==="me"?"me":"bot");
+    div.innerHTML = `<div class="meta">${m.role==="me"?"You":"Companion"} • ${esc(new Date(m.ts).toLocaleString())}</div><div>${esc(m.text).replaceAll("\n","<br>")}</div>`;
+    el.appendChild(div);
+  }
+  if (scroll) el.scrollTop = el.scrollHeight;
+}
+function addMsg(role, text){
+  const chat=getChat();
+  chat.push({ role, text: clamp(text, 900), ts: new Date().toISOString() });
+  setChat(chat);
+  renderChat(true);
+}
+
+/* =======================
+   Non-repetitive short voice
+======================= */
+function replyCache(){ return load(LS.lastReplies, { list: [] }); }
+function saveReply(r){
+  const c=replyCache();
+  c.list.unshift(r);
+  c.list=c.list.slice(0,10);
+  save(LS.lastReplies, c);
+}
+function tooSimilar(r){
+  const low=r.toLowerCase().replace(/\s+/g," ").trim();
+  return replyCache().list.some(x=>{
+    const a=x.toLowerCase().replace(/\s+/g," ").trim();
+    return a===low || a.includes(low.slice(0,55)) || low.includes(a.slice(0,55));
+  });
+}
+function voice(core){
+  const ch=$("character").value;
+  const tone=$("tone").value;
+  const p=getProfile();
+  const name=p.name?.trim()?p.name.trim():"you";
+
+  const heads={
+    friend:{soft:["hey "+name,"yo","i’m here"],calm:["hey","okay","tell me"],bold:["alright","let’s go","we move"]},
+    mentor:{soft:["okay","slowly","one step"],calm:["good","clear","simple"],bold:["focus","now","execute"]},
+    sister:{soft:["aww okay","come","i’m listening"],calm:["spill","hmm","go on"],bold:["say it 😄","okay okay","we fix it"]},
+    father:{soft:["listen","breathe","steady"],calm:["alright","we’ll handle it","step by step"],bold:["stand tall","discipline","do it now"]}
+  };
+  const tails={
+    friend:["comfort or plan?","one small win?","talk."],
+    mentor:["2 details.","what’s next 10 mins?","pick one."],
+    sister:["tell me more 😄","who did what?","no judgment."],
+    father:["rest or action?","what do you need?","we set a boundary."]
+  };
+
+  let out = `${pick(heads[ch]?.[tone]||["hey"])}\n${core}\n${pick(tails[ch]||["what now?"])}`;
+  out = clamp(out, 700);
+
+  if (tooSimilar(out)){
+    out = `${pick(heads[ch]?.[tone]||["hey"])}\n${core}\n${pick(tails[ch]||["what now?"])}`;
+    out = clamp(out, 700);
+  }
+  saveReply(out);
+  return out;
+}
+
+/* =======================
+   Preference gate (every load)
+======================= */
+function openModal(title, body){
+  $("modalTitle").textContent = title;
+  $("modalBody").innerHTML = body;
+  $("overlay").style.display="flex";
+}
+function closeModal(){ $("overlay").style.display="none"; }
+
+function askPrefsEveryLoad(){
+  const p=getProfile();
+  const nm=p.name?.trim()?p.name.trim():"buddy";
+  openModal(
+    "Before we start…",
+    `<div class="modalBody">
+      <div>Hey ${esc(nm)}.</div>
+      <div style="margin-top:8px">Set this fast:</div>
+      <div class="small" style="margin-top:8px">
+        • choose character + tone<br>
+        • for movies: language + mood<br>
+        • for food: preference + budget<br>
+        • for music: taste + language
+      </div>
+    </div>`
+  );
+}
+
+/* =======================
+   Greetings
+======================= */
+function shouldGreet(){
+  const g=load(LS.greeted,{day:"",per:""});
+  return !(g.day===todayKey() && g.per===period());
+}
+function markGreet(){ save(LS.greeted,{day:todayKey(),per:period(),ts:new Date().toISOString()}); }
+function greet(){
+  const p=getProfile();
+  const nm=p.name?.trim()?p.name.trim():"buddy";
+  const per=period();
+  const lines={
+    morning:[`morning ${nm} ☀️`,`yo ${nm}, new day.`,`good morning ${nm}.`],
+    afternoon:[`afternoon ${nm}.`,`midday check ${nm}.`,`hey ${nm}, you good?`],
+    night:[`night ${nm} 🌙`,`hey ${nm}, breathe.`,`good night ${nm}.`]
+  };
+  addMsg("bot", voice(pick(lines[per])+" one small win?"));
+  markGreet();
+}
+
+/* =======================
+   Google-in-app via SerpAPI (optional)
+======================= */
+function getSerpKey(){
+  const k = $("serpKey").value.trim();
+  if (k) { localStorage.setItem(LS.serpKey, k); return k; }
+  return (localStorage.getItem(LS.serpKey) || "").trim();
+}
+async function serpSearch(query){
+  const key = getSerpKey();
+  if (!key) return null;
+  const url = new URL("https://serpapi.com/search.json");
+  url.searchParams.set("engine","google");
+  url.searchParams.set("q", query);
+  url.searchParams.set("hl","en");
+  url.searchParams.set("api_key", key);
+
+  const res = await fetch(url.toString());
+  if (!res.ok) throw new Error("SerpAPI error");
+  return await res.json();
+}
+
+function renderTiles(containerId, items){
+  const box=$(containerId);
+  box.innerHTML="";
+  if (!items || !items.length){
+    box.innerHTML = `<div class="small">No results.</div>`;
+    return;
+  }
+  for (const it of items.slice(0,6)){
+    const div=document.createElement("div");
+    div.className="tile";
+    div.innerHTML = `
+      <b>${esc(it.title || "Untitled")}</b>
+      <div class="meta2">${esc(it.snippet || "")}</div>
+      ${it.link ? `<div class="meta2"><a href="${esc(it.link)}" target="_blank" rel="noreferrer">Open</a></div>` : ""}
+    `;
+    box.appendChild(div);
+  }
+}
+
+function openGoogle(q){
+  window.open("https://www.google.com/search?q="+encodeURIComponent(q),"_blank");
+}
+function openMaps(q){
+  window.open("https://www.google.com/maps/search/"+encodeURIComponent(q),"_blank");
+}
+
+/* =======================
+   Movies
+======================= */
+function movieQuery(){
+  const p=getProfile();
+  const lang=($("favLang").value || p.favLang || "").trim();
+  const mood=($("movMood").value || "").trim();
+  const platform=($("movPlatform").value || "").trim();
+  const bits=[];
+  if (lang) bits.push(lang);
+  if (mood) bits.push(mood);
+  bits.push("best movies");
+  if (platform) bits.push(platform);
+  bits.push("recommended");
+  return bits.join(" ");
+}
+async function getMovies(){
+  const q=movieQuery();
+  if (!q.toLowerCase().includes("movies")) return;
+  addMsg("bot", voice("okay. give me 2 sec."));
+
+  const data = await serpSearch(q).catch(()=>null);
+  if (!data){
+    // fallback
+    openGoogle(q);
+    addMsg("bot", voice("i opened google.\nsend me 2 titles you like."));
+    return;
+  }
+  const organic = (data.organic_results || []).map(r=>({title:r.title, snippet:r.snippet, link:r.link}));
+  renderTiles("movieResults", organic);
+  addMsg("bot", voice("pick one from the list.\nwant cozy or hype?"));
+}
+function openMoviesFallback(){
+  const q=movieQuery();
+  openGoogle(q);
+  addMsg("bot", voice("google opened.\npick 2 titles. send them."));
+}
+
+/* =======================
+   Food spots
+======================= */
+function foodQuery(){
+  const p=getProfile();
+  const city=($("city").value || p.city || "").trim();
+  const pref=($("foodPref").value || "").trim();
+  const vibe=($("foodVibe").value || "").trim();
+  const budget=($("budget").value || p.budget || "").trim();
+  // Aim for “top rated” phrases (works in Google results)
+  const bits=[];
+  bits.push(pref || "restaurants");
+  if (vibe) bits.push(vibe);
+  if (budget) bits.push(budget);
+  bits.push("budget friendly");
+  bits.push("top rated");
+  bits.push("in "+(city || "near me"));
+  return bits.join(" ");
+}
+async function getFood(){
+  const p=getProfile();
+  const city=($("city").value || p.city || "").trim();
+  const pref=($("foodPref").value || "").trim();
+  if (!city){ addMsg("bot", voice("city/area first.")); return; }
+  if (!pref){ addMsg("bot", voice("what food are you craving?")); return; }
+
+  const q=foodQuery();
+  addMsg("bot", voice("nice. hunting…"));
+
+  const data = await serpSearch(q).catch(()=>null);
+  if (!data){
+    // fallback: maps + google
+    openGoogle(q);
+    openMaps(`${pref} ${city} top rated budget`);
+    addMsg("bot", voice("opened google + maps.\nlook for 4.2+.\nstreet or family?"));
+    return;
+  }
+
+  // Prefer local pack if present, else organic
+  const local = (data.local_results || []).map(r=>({
+    title: `${r.title || "Place"}${r.rating ? " • "+r.rating+"⭐" : ""}${r.price ? " • "+r.price : ""}`,
+    snippet: `${r.address || ""}${r.phone ? " • "+r.phone : ""}`,
+    link: r.links?.website || r.links?.directions || r.website || r.link
+  }));
+  const organic = (data.organic_results || []).map(r=>({title:r.title, snippet:r.snippet, link:r.link}));
+
+  renderTiles("foodResults", (local.length ? local : organic));
+  addMsg("bot", voice("pick one.\nwant spicy or mild?"));
+}
+function openFoodFallback(){
+  const p=getProfile();
+  const city=($("city").value || p.city || "").trim();
+  const pref=($("foodPref").value || "").trim();
+  if (!city){ addMsg("bot", voice("city/area first.")); return; }
+  if (!pref){ addMsg("bot", voice("food preference first.")); return; }
+  const q=foodQuery();
+  openGoogle(q);
+  openMaps(`${pref} ${city} top rated budget`);
+  addMsg("bot", voice("maps opened.\ncheck rating + price."));
+}
+
+/* =======================
+   Spotify OAuth (PKCE) - no passwords
+   You must create a Spotify app to get CLIENT_ID and set redirect URI to this page URL.
+======================= */
+const SPOTIFY = {
+  clientId: "PASTE_YOUR_SPOTIFY_CLIENT_ID_HERE",
+  redirectUri: window.location.origin + window.location.pathname, // same page
+  scopes: "user-read-private user-read-email"
+};
+// PKCE helpers
+function base64urlencode(a){
+  return btoa(String.fromCharCode(...new Uint8Array(a)))
+    .replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+}
+async function sha256(plain){
+  const enc = new TextEncoder().encode(plain);
+  return await crypto.subtle.digest("SHA-256", enc);
+}
+function randString(len=64){
+  const chars="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~";
+  let out="";
+  const bytes=crypto.getRandomValues(new Uint8Array(len));
+  for (let i=0;i<len;i++) out += chars[bytes[i] % chars.length];
+  return out;
+}
+function getSpotifyToken(){
+  return load(LS.spotify, { access_token:"", expires_at:0 }).access_token || "";
+}
+function setSpotifyToken(token, expiresIn){
+  const expires_at = Date.now() + (expiresIn*1000) - 15000;
+  save(LS.spotify, { access_token: token, expires_at });
+}
+function spotifyTokenValid(){
+  const s=load(LS.spotify, { access_token:"", expires_at:0 });
+  return s.access_token && Date.now() < (s.expires_at || 0);
+}
+
+async function spotifyLogin(){
+  if (SPOTIFY.clientId === "PASTE_YOUR_SPOTIFY_CLIENT_ID_HERE"){
+    addMsg("bot", voice("spotify needs a client id.\nmake a spotify app, paste client id in code."));
+    return;
+  }
+  const verifier = randString(64);
+  const challenge = base64urlencode(await sha256(verifier));
+  save(LS.spotifyPKCE, { verifier });
+
+  const authUrl = new URL("https://accounts.spotify.com/authorize");
+  authUrl.searchParams.set("client_id", SPOTIFY.clientId);
+  authUrl.searchParams.set("response_type","code");
+  authUrl.searchParams.set("redirect_uri", SPOTIFY.redirectUri);
+  authUrl.searchParams.set("scope", SPOTIFY.scopes);
+  authUrl.searchParams.set("code_challenge_method","S256");
+  authUrl.searchParams.set("code_challenge", challenge);
+  authUrl.searchParams.set("state", randString(16));
+  window.location.href = authUrl.toString();
+}
+
+async function spotifyHandleRedirect(){
+  const url = new URL(window.location.href);
+  const code = url.searchParams.get("code");
+  if (!code) return;
+
+  const pkce = load(LS.spotifyPKCE, { verifier:"" });
+  if (!pkce.verifier) return;
+
+  const body = new URLSearchParams();
+  body.set("client_id", SPOTIFY.clientId);
+  body.set("grant_type","authorization_code");
+  body.set("code", code);
+  body.set("redirect_uri", SPOTIFY.redirectUri);
+  body.set("code_verifier", pkce.verifier);
+
+  const res = await fetch("https://accounts.spotify.com/api/token", {
+    method:"POST",
+    headers:{ "Content-Type":"application/x-www-form-urlencoded" },
+    body
+  });
+  if (!res.ok){
+    addMsg("bot", voice("spotify login failed."));
+    return;
+  }
+  const data = await res.json();
+  setSpotifyToken(data.access_token, data.expires_in);
+
+  // clean URL
+  url.searchParams.delete("code");
+  url.searchParams.delete("state");
+  window.history.replaceState({}, document.title, url.toString());
+
+  addMsg("bot", voice("spotify connected.\ntell me your taste."));
+}
+
+async function spotifySearch(q){
+  if (!spotifyTokenValid()){
+    return null;
+  }
+  const token = getSpotifyToken();
+  const url = new URL("https://api.spotify.com/v1/search");
+  url.searchParams.set("q", q);
+  url.searchParams.set("type","track,playlist");
+  url.searchParams.set("limit","6");
+
+  const res = await fetch(url.toString(), { headers:{ Authorization: "Bearer "+token }});
+  if (!res.ok) return null;
+  return await res.json();
+}
+
+function toSpotifyEmbedFromUri(uriOrUrl){
+  // Accept spotify:track:ID OR https://open.spotify.com/track/ID
+  try{
+    if (uriOrUrl.startsWith("spotify:")){
+      const parts = uriOrUrl.split(":"); // spotify:track:ID
+      if (parts.length >= 3) return `https://open.spotify.com/embed/${parts[1]}/${parts[2]}`;
+    }
+    const u = new URL(uriOrUrl);
+    const parts = u.pathname.split("/").filter(Boolean);
+    if (parts.length >= 2) return `https://open.spotify.com/embed/${parts[0]}/${parts[1]}`;
+  }catch{}
+  return null;
+}
+
+async function musicFindAndPlay(){
+  const taste = $("musicTaste").value.trim();
+  const lang = $("musicLang").value.trim() || $("favLang").value.trim();
+  if (!taste){
+    addMsg("bot", voice("give me your taste.\nartist/song/mood."));
+    return;
+  }
+  if (!spotifyTokenValid()){
+    addMsg("bot", voice("login to spotify first.\n(no passwords)"));
+    return;
+  }
+  addMsg("bot", voice("okay. searching…"));
+  const q = (lang ? (lang+" ") : "") + taste;
+  const data = await spotifySearch(q);
+  if (!data){
+    addMsg("bot", voice("spotify search failed.\ntry again."));
+    return;
+  }
+  const track = data.tracks?.items?.[0];
+  const playlist = data.playlists?.items?.[0];
+
+  // Prefer track if found, else playlist
+  const chosen = track ? { type:"track", name: track.name, url: track.external_urls.spotify } :
+                 playlist ? { type:"playlist", name: playlist.name, url: playlist.external_urls.spotify } :
+                 null;
+
+  if (!chosen){
+    addMsg("bot", voice("no good match.\ntry another keyword."));
+    return;
+  }
+
+  const embed = toSpotifyEmbedFromUri(chosen.url);
+  if (embed) $("spotifyFrame").src = embed;
+
+  addMsg("bot", voice(`playing: ${chosen.name}`));
+}
+
+/* =======================
+   Chat brain (short, preference-first)
+======================= */
+function detect(t){
+  t=(t||"").toLowerCase();
+  return {
+    movie: /(movie|film|watch)/.test(t),
+    food: /(food|eat|biryani|restaurant|cafe|dosa|parotta|meals)/.test(t),
+    music: /(music|spotify|song|play)/.test(t),
+    lonely: /(alone|lonely|empty|nobody)/.test(t),
+    study: /(study|exam|revision|ca)/.test(t),
+    gym: /(gym|workout|fitness)/.test(t),
+  };
+}
+
+function chatReply(userText){
+  const p=getProfile();
+  const d=detect(userText);
+
+  if (d.movie){
+    const lang = ($("favLang").value || p.favLang || "").trim();
+    const mood = ($("movMood").value || "").trim();
+    if (!lang || !mood) return voice("movie time.\nlanguage + mood?");
+    getMovies();
+    return voice("done.\ncheck the movie list 👉");
+  }
+
+  if (d.food){
+    const city = ($("city").value || p.city || "").trim();
+    const pref = ($("foodPref").value || "").trim();
+    if (!city) return voice("where are you? (city/area)");
+    if (!pref) return voice("what are you craving?");
+    getFood();
+    return voice("got it.\ncheck the food list 👉");
+  }
+
+  if (d.music){
+    if (!spotifyTokenValid()) return voice("login to spotify first.\nno passwords.");
+    return voice("tell me your taste + language.");
+  }
+
+  if (d.study) return voice("subject + minutes you have?");
+  if (d.gym) return voice("15 mins? yes/no.");
+  if (d.lonely) return voice("i’m here.\ncomfort or distraction?");
+
+  return voice("what now?\nmovie / food / music / study / gym / talk");
+}
+
+/* =======================
+   Events
+======================= */
+$("send").addEventListener("click", ()=>{
+  const t=$("msg").value.trim();
+  if (!t) return;
+  $("msg").value="";
+  addMsg("me", t);
+  addMsg("bot", chatReply(t));
+});
+$("msg").addEventListener("keydown",(e)=>{
+  if (e.key==="Enter" && (e.ctrlKey || e.metaKey)){
+    e.preventDefault();
+    $("send").click();
+  }
+});
+$("clear").addEventListener("click", ()=>{ setChat([]); renderChat(true); });
+$("checkin").addEventListener("click", greet);
+
+$("saveProfile").addEventListener("click", ()=>{
+  const next = {
+    name: $("name").value.trim(),
+    favLang: $("favLang").value.trim(),
+    city: $("city").value.trim(),
+    goal: $("goal").value.trim(),
+    budget: $("budget").value.trim()
+  };
+  setProfile(next);
+  localStorage.setItem(LS.serpKey, $("serpKey").value.trim() || localStorage.getItem(LS.serpKey) || "");
+  renderProfile();
+  addMsg("bot", voice("saved.\nnow tell me what you want."));
+});
+
+$("resetAll").addEventListener("click", ()=>{
+  if (!confirm("Reset everything stored in this browser?")) return;
+  Object.values(LS).forEach(k=>localStorage.removeItem(k));
+  location.reload();
+});
+
+$("movieGo").addEventListener("click", getMovies);
+$("movieOpen").addEventListener("click", openMoviesFallback);
+
+$("foodGo").addEventListener("click", getFood);
+$("foodOpen").addEventListener("click", openFoodFallback);
+
+$("spotifyLogin").addEventListener("click", spotifyLogin);
+$("spotifyLogout").addEventListener("click", ()=>{
+  localStorage.removeItem(LS.spotify);
+  addMsg("bot", voice("spotify logged out."));
+});
+$("musicSearch").addEventListener("click", musicFindAndPlay);
+
+$("character").addEventListener("change", ()=>{ $("modeTag").textContent = $("character").value; });
+$("tone").addEventListener("change", ()=>{});
+
+/* =======================
+   Init
+======================= */
+async function init(){
+  setPeriodUI();
+  $("modeTag").textContent = $("character").value;
+
+  // restore serp key
+  const k = (localStorage.getItem(LS.serpKey) || "").trim();
+  if (k) $("serpKey").value = k;
+
+  renderProfile();
+  renderChat(true);
+
+  // handle Spotify redirect
+  await spotifyHandleRedirect();
+
+  // Ask preferences on every load
+  askPrefsEveryLoad();
+
+  // seed chat once
+  if (getChat().length===0){
+    addMsg("bot", voice("set your prefs.\nthen say: movie / food / music."));
+  }
+
+  // greet once per period
+  if (shouldGreet()) greet();
+
+  // period watcher
+  setInterval(()=>{
+    setPeriodUI();
+    if (shouldGreet()) greet();
+  }, 60000);
+}
+
+$("closeModal").addEventListener("click", closeModal);
+$("prefDone").addEventListener("click", closeModal);
+$("overlay").addEventListener("click",(e)=>{ if (e.target.id==="overlay") closeModal(); });
+
+init();
+</script>
+</body>
+</html>
